@@ -90,7 +90,7 @@ LANDING_CSS = """
   border-radius: 0; overflow: hidden; background-size: cover; background-position: 62% center;
   min-height: 620px; display: flex; align-items: center; margin: 0 -2.5rem 44px;
 }
-.hero-inner { padding: 56px 48px; max-width: 640px; }
+.hero-inner { padding: 56px 48px 56px 2.5rem; max-width: 620px; }
 .hero-inner .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
   font-weight: 700; color: #6f7016; margin: 0 0 18px; }
 .hero-inner h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
