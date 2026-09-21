@@ -89,6 +89,8 @@ html, body { overflow-x: hidden; }
 header[data-testid="stHeader"] { display: none; }
 .block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
   max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+/* Collapse the vertical gap around empty style-injection blocks above the nav */
+[data-testid="stVerticalBlock"] { gap: 0 !important; }
 /* Top nav */
 .nav { background: #f4f0e7; width: 100vw; margin: 0 calc(-50vw + 50%);
   display: flex; align-items: center; justify-content: space-between;
