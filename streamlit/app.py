@@ -87,7 +87,8 @@ LANDING_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
 html, body { overflow-x: hidden; }
 header[data-testid="stHeader"] { display: none; }
-.block-container { max-width: 1280px !important; padding: 0 2rem 0 !important; }
+.block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
+  max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
 /* Top nav */
 .nav { background: #f4f0e7; width: 100vw; margin: 0 calc(-50vw + 50%);
   display: flex; align-items: center; justify-content: space-between;
@@ -96,7 +97,8 @@ header[data-testid="stHeader"] { display: none; }
 .nav-links { display: flex; align-items: center; gap: 26px; }
 .nav-links a { color: #43505d !important; text-decoration: none !important; font-size: .95rem; }
 .nav-links a:hover { color: #1c2530 !important; }
-.nav-cta { background: #1c2530; color: #fff !important; text-decoration: none !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+.nav-links a.nav-cta { background: #1c2530; color: #fff !important; text-decoration: none !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+.nav-links a.nav-cta:hover { color: #fff !important; }
 @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
 .bg-hero {
   border-radius: 0; overflow: hidden; background-size: cover; background-position: 62% center;
