@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beyond the Grade</title>
+  <meta name="description" content="A short, adaptive assessment that shows what your child really understands." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ============================ TOP NAV ============================ -->
+  <header class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a class="brand" href="#" data-nav="landing">Beyond the Grade</a>
+      <nav class="nav-links" id="marketingLinks">
+        <a href="#" data-scroll="features">How It Works</a>
+        <a href="#" data-scroll="features">Sample Report</a>
+        <a href="#" data-scroll="features">FAQs</a>
+        <a href="#" data-scroll="features">Resources</a>
+        <a class="nav-signin" href="#" data-nav="intake">Sign In</a>
+        <button class="btn btn-dark btn-sm" data-nav="intake">Get Started</button>
+      </nav>
+      <nav class="nav-links" id="appLinks" hidden>
+        <a href="#" data-nav="results">Dashboard</a>
+        <a href="#" data-scroll="features">Resources</a>
+        <a href="#" data-nav="landing">Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="app">
+
+    <!-- ============================ LANDING ============================ -->
+    <section class="view view-landing" data-view="landing">
+      <div class="hero">
+        <span class="petal petal-sage" aria-hidden="true"></span>
+        <span class="petal petal-blush" aria-hidden="true"></span>
+
+        <div class="hero-copy">
+          <p class="eyebrow">A smarter look at math learning</p>
+          <h1 class="display">Because a grade<br />doesn&rsquo;t tell<br />the whole story.</h1>
+          <p class="lede">A short, adaptive assessment that shows what your child really
+            understands — where they may have gaps, and what they&rsquo;re ready to learn next.</p>
+          <button class="btn btn-dark btn-lg" data-nav="intake">Start the Math Check &rarr;</button>
+          <p class="hero-meta">Takes about 15 minutes &nbsp;·&nbsp; Grades 2–8</p>
+        </div>
+
+        <div class="hero-photo-wrap">
+          <img src="images/hero.webp" alt="A child working on a laptop at the kitchen table" />
+        </div>
+      </div>
+
+      <div class="features-band fullbleed" id="features">
+        <div class="features fullbleed-inner">
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            </span>
+            <div class="feature-text">
+              <h3>Identify strengths and gaps</h3>
+              <p>Looks below, at, and above grade level.</p>
+            </div>
+          </div>
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="14" y2="17"></line></svg>
+            </span>
+            <div class="feature-text">
+              <h3>Actionable insights</h3>
+              <p>Understand what the responses suggest.</p>
+            </div>
+          </div>
+          <div class="feature">
+            <span class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle></svg>
+            </span>
+            <div class="feature-text">
+              <h3>Built for real learners</h3>
+              <p>Adaptive questions, not a fixed worksheet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="how-works fullbleed">
+        <div class="fullbleed-inner">
+          <p class="eyebrow">How it works</p>
+          <h2 class="display how-works-title">A bigger picture than one score.</h2>
+          <p class="how-works-sub">The assessment follows the learner. If something looks uncertain,
+            it checks the foundation. If something looks strong, it explores what's next.</p>
+        </div>
+      </div>
+
+      <!-- Signals -->
+      <div class="signals fullbleed">
+        <div class="fullbleed-inner">
+          <p class="eyebrow signals-eyebrow">Check for yourself, at home, in 5 minutes</p>
+          <h2 class="display signals-title">5 signs your child has<br /><em>gaps</em> in math.</h2>
+          <p class="signals-sub">The foundation cracks quietly — here's what it tends to look like day to day.</p>
+
+          <div class="signal-grid">
+            <article class="signal-card">
+              <span class="signal-num">1</span>
+              <h3>Says &ldquo;I understood&rdquo; — but can&rsquo;t explain it</h3>
+              <p>Ask them to teach the lesson back to you. If they get stuck, they memorized it instead of learning it.</p>
+            </article>
+            <article class="signal-card">
+              <span class="signal-num">2</span>
+              <h3>Only solves problems &ldquo;like in class&rdquo;</h3>
+              <p>Change the wording a little and they no longer know where to start.</p>
+            </article>
+            <article class="signal-card">
+              <span class="signal-num">3</span>
+              <h3>Counts on fingers for simple facts</h3>
+              <p>An uncertain times table means every exercise quietly takes twice as long.</p>
+            </article>
+            <article class="signal-card">
+              <span class="signal-num">4</span>
+              <h3>Avoids math: &ldquo;No homework today&rdquo;</h3>
+              <p>Avoidance isn&rsquo;t laziness — it&rsquo;s self-protection when the work feels unsafe.</p>
+            </article>
+            <article class="signal-card">
+              <span class="signal-num">5</span>
+              <h3>Grades slip gradually, not suddenly</h3>
+              <p>90% &rarr; 80% &rarr; 60%. The foundation has gaps, so the collapse is slow and easy to miss.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="site-footer fullbleed">
+        <div class="fullbleed-inner footer-grid">
+          <div>
+            <p class="footer-brand">Beyond the Grade</p>
+            <p class="footer-tag">A parent-friendly way to understand math learning beyond the report card.</p>
+          </div>
+          <div>
+            <p class="footer-note-title">Prototype note</p>
+            <p class="footer-note">This version is an engineering prototype. Its results are not
+              standardized or diagnostic.</p>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <!-- ============================ INTAKE ============================ -->
+    <section class="view view-flow" data-view="intake" hidden>
+      <div class="flow-card">
+        <div class="stepper" data-step="1"></div>
+        <h2 class="display-sm">Let's get started.</h2>
+        <p class="flow-sub">Tell us a little about your child.</p>
+        <form id="intakeForm" class="intake-form" novalidate>
+          <label class="field">
+            <span class="field-label">Child's first name</span>
+            <input type="text" name="name" autocomplete="off" placeholder="Alex" required />
+          </label>
+          <label class="field">
+            <span class="field-label">Current grade</span>
+            <select name="grade" required>
+              <option value="" disabled selected>Select a grade</option>
+              <option value="2">Grade 2</option>
+              <option value="3">Grade 3</option>
+              <option value="4">Grade 4</option>
+              <option value="5">Grade 5</option>
+              <option value="6">Grade 6</option>
+              <option value="7">Grade 7</option>
+              <option value="8">Grade 8</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Child's age <span class="muted">(optional)</span></span>
+            <input type="number" name="age" min="5" max="18" placeholder="11" />
+          </label>
+          <p class="form-error" id="intakeError" hidden></p>
+          <button type="submit" class="btn btn-dark btn-block">Next &rarr;</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============================ ASSESSMENT ============================ -->
+    <section class="view view-flow" data-view="assessment" hidden>
+      <div class="flow-card assessment-card">
+        <div class="stepper" data-step="2"></div>
+        <div class="q-head">
+          <span class="chip" id="qSkill">Skill</span>
+          <span class="q-count" id="qCount">Question 1 of 20</span>
+        </div>
+        <h2 class="q-prompt display-xs" id="qPrompt">Loading…</h2>
+        <div class="choices" id="qChoices"></div>
+        <form id="shortForm" class="short-form" hidden>
+          <input type="text" id="shortInput" autocomplete="off" placeholder="Type your answer" />
+        </form>
+        <div class="q-nav">
+          <span class="q-progress" id="qProgress"></span>
+          <button class="btn btn-dark" id="nextBtn" disabled>Next &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ DONE ============================ -->
+    <section class="view view-flow" data-view="done" hidden>
+      <div class="flow-card done-card">
+        <div class="check-badge">✓</div>
+        <h2 class="display-sm">All done!</h2>
+        <p class="flow-sub">We've analyzed <span id="doneName">your child</span>'s responses and the Math Snapshot is ready.</p>
+        <button class="btn btn-dark btn-lg" data-nav="results">View Results &rarr;</button>
+        <p class="script-note script-inline">Progress starts with understanding.</p>
+      </div>
+    </section>
+
+    <!-- ============================ RESULTS ============================ -->
+    <section class="view view-results" data-view="results" hidden>
+      <div class="results-wrap" id="resultsWrap">
+        <!-- populated by app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

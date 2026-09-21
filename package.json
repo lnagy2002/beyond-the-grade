@@ -1,0 +1,11 @@
+{
+  "name": "beyond-the-grade",
+  "version": "0.2.0",
+  "description": "Adaptive math assessment prototype with a parent-facing web UI.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-beyond-the-grade-adaptive.js"
+  },
+  "license": "UNLICENSED"
+}
