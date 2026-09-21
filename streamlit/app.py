@@ -86,13 +86,24 @@ LANDING_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
 html, body { overflow-x: hidden; }
-.block-container { max-width: 1180px !important; padding: 0.5rem 2rem 0 !important; }
+header[data-testid="stHeader"] { display: none; }
+.block-container { max-width: 1280px !important; padding: 0 2rem 0 !important; }
+/* Top nav */
+.nav { background: #f4f0e7; width: 100vw; margin: 0 calc(-50vw + 50%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #1c2530 !important; text-decoration: none !important; }
+.nav-links { display: flex; align-items: center; gap: 26px; }
+.nav-links a { color: #43505d !important; text-decoration: none !important; font-size: .95rem; }
+.nav-links a:hover { color: #1c2530 !important; }
+.nav-cta { background: #1c2530; color: #fff !important; text-decoration: none !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+@media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
 .bg-hero {
   border-radius: 0; overflow: hidden; background-size: cover; background-position: 62% center;
   min-height: 92vh; display: flex; align-items: center;
   width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);
 }
-.hero-inner { width: 100%; padding-left: max(2rem, calc((100vw - 1180px) / 2 + 2rem)); padding-right: 2rem; }
+.hero-inner { width: 100%; padding-left: max(2rem, calc((100vw - 1280px) / 2 + 2rem)); padding-right: 2rem; }
 .hero-text { max-width: 620px; padding: 56px 0; }
 .hero-inner .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
   font-weight: 700; color: #6f7016; margin: 0 0 18px; }
@@ -107,7 +118,7 @@ a.cta:hover { background: #10161d; }
   font-weight: 700; color: #6f7016; text-align: center; margin: 0 0 22px; }
 /* Features — white full-width band, icons to the left of the text */
 .feat-band { background: #fff; width: 100vw; margin: 0 calc(-50vw + 50%);
-  padding: 46px max(2rem, calc((100vw - 1180px) / 2 + 2rem)); }
+  padding: 46px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
 .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
 .feat { display: flex; align-items: flex-start; gap: 14px; text-align: left; }
 .fic { color: #1c2530; flex: 0 0 auto; display: inline-flex; margin-top: 1px; }
@@ -116,14 +127,14 @@ a.cta:hover { background: #10161d; }
 .ft-sub { color: #43505d; font-size: .98rem !important; margin: 0 !important; line-height: 1.45; }
 /* How it works — full-width cream band */
 .hw-band { background: #efe9dc; width: 100vw; margin: 0 calc(-50vw + 50%);
-  padding: 72px max(2rem, calc((100vw - 1180px) / 2 + 2rem)) 90px; text-align: center; }
+  padding: 72px max(2rem, calc((100vw - 1280px) / 2 + 2rem)) 90px; text-align: center; }
 .hw-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
   font-size: clamp(2.2rem, 5vw, 3.4rem) !important; line-height: 1.08; text-align: center !important; margin: 0 0 16px; }
 .hw-sub { display: inline-block !important; color: #43505d; text-align: center !important;
   max-width: 62ch; font-size: 1.12rem !important; margin: 0 auto; }
 /* Signals — white full-width band */
 .sig-band { background: #fff; width: 100vw; margin: 0 calc(-50vw + 50%);
-  padding: 72px max(2rem, calc((100vw - 1180px) / 2 + 2rem)); }
+  padding: 72px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
 .sig-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
   font-size: clamp(2.1rem, 4.6vw, 3.3rem) !important; line-height: 1.1; margin: 0 0 8px; }
 .sig-title em { color: #6f7016; font-style: italic; }
@@ -135,7 +146,7 @@ a.cta:hover { background: #10161d; }
 .sig-card h4 { font-family: 'Inter', sans-serif; font-size: 1.18rem; color: #1c2530; margin: 0 0 12px; line-height: 1.25; }
 .sig-card p { color: #43505d; font-size: .98rem; margin: 0; line-height: 1.55; }
 .foot { background: #e7c7bd; border-radius: 0; width: 100vw; margin: 0 calc(-50vw + 50%);
-  padding: 64px max(2rem, calc((100vw - 1180px) / 2 + 2rem)) 72px;
+  padding: 64px max(2rem, calc((100vw - 1280px) / 2 + 2rem)) 72px;
   display: grid; grid-template-columns: 1.1fr 1fr; gap: 60px; }
 .foot .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.5rem; color: #1c2530; margin: 0 0 14px; }
 .foot p { color: #1c2530; margin: 0; font-size: 1.02rem; }
@@ -152,6 +163,19 @@ a.cta:hover { background: #10161d; }
 def render_landing():
     st.markdown(LANDING_CSS, unsafe_allow_html=True)
     bg = hero_data_uri()
+
+    nav = (
+        '<div class="nav">'
+        '<a class="brand" href="?" target="_self">Beyond the Grade</a>'
+        '<div class="nav-links">'
+        '<a href="#how">How It Works</a>'
+        '<a href="#signs">Sample Report</a>'
+        '<a href="#signs">FAQs</a>'
+        '<a href="#signs">Resources</a>'
+        '<a href="?go=intake" target="_self">Sign In</a>'
+        '<a class="nav-cta" href="?go=intake" target="_self">Get Started</a>'
+        "</div></div>"
+    )
 
     hero = (
         f'<div class="bg-hero" style="background-image: '
@@ -192,7 +216,7 @@ def render_landing():
     )
 
     how = (
-        '<div class="hw-band">'
+        '<div class="hw-band" id="how">'
         '<p class="section-eyebrow">How it works</p>'
         '<p class="hw-title">A bigger picture than one score.</p>'
         '<p class="hw-sub">The assessment follows the learner. If something looks uncertain, '
@@ -217,7 +241,7 @@ def render_landing():
         for n, t, d in signals_cards
     )
     signals = (
-        '<div class="sig-band">'
+        '<div class="sig-band" id="signs">'
         '<p class="section-eyebrow" style="text-align:left">Check for yourself, at home, in 5 minutes</p>'
         '<p class="sig-title">5 signs your child has <em>gaps</em> in math.</p>'
         '<p class="sig-sub">The foundation cracks quietly — here’s what it tends to look like day to day.</p>'
@@ -234,7 +258,7 @@ def render_landing():
         "standardized or diagnostic.</p></div></div>"
     )
 
-    st.markdown(hero + features + how + signals + footer, unsafe_allow_html=True)
+    st.markdown(nav + hero + features + how + signals + footer, unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------------------
