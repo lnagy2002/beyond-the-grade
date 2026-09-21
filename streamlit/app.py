@@ -8,10 +8,21 @@ which is left intact.
 Run locally:   streamlit run streamlit/app.py
 """
 
+import base64
+from pathlib import Path
+
 import streamlit as st
 import engine
 
 st.set_page_config(page_title="Beyond the Grade", page_icon="📘", layout="centered")
+
+
+@st.cache_data
+def hero_data_uri():
+    """Base64 data URI for the hero photo so it embeds without static hosting."""
+    path = Path(__file__).parent / "assets" / "hero.webp"
+    data = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:image/webp;base64,{data}"
 
 # Light brand styling.
 st.markdown(
@@ -33,10 +44,15 @@ st.markdown(
 )
 
 ss = st.session_state
-ss.setdefault("phase", "intake")
+ss.setdefault("phase", "landing")
 ss.setdefault("state", None)
 ss.setdefault("current_q", None)
 ss.setdefault("child", None)
+
+# CTA links on the landing page navigate via a query param.
+if st.query_params.get("go") == "intake":
+    ss.phase = "intake"
+    st.query_params.clear()
 
 
 def start(name, grade, age):
@@ -60,16 +76,146 @@ def submit_answer(response):
 
 
 def reset():
-    ss.phase = "intake"
+    ss.phase = "landing"
     ss.state = None
     ss.current_q = None
     ss.child = None
 
 
+LANDING_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
+.block-container { padding-top: 1.2rem; max-width: 900px; }
+.bg-hero {
+  border-radius: 18px; overflow: hidden; background-size: cover; background-position: 62% center;
+  min-height: 440px; display: flex; align-items: center; margin-bottom: 40px;
+}
+.hero-inner { padding: 44px 40px; max-width: 560px; }
+.hero-inner .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
+  font-weight: 700; color: #6f7016; margin: 0 0 14px; }
+.hero-inner h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
+  font-size: 2.7rem; line-height: 1.04; margin: 0 0 18px; }
+.hero-inner .lede { color: #43505d; font-size: 1.08rem; max-width: 42ch; margin: 0 0 26px; }
+.hero-inner .meta { color: #8a8578; font-size: .9rem; margin: 14px 0 0; }
+a.cta { display: inline-block; background: #1c2530; color: #fff !important; padding: 14px 24px;
+  border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 1rem; }
+a.cta:hover { background: #10161d; }
+.section-eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
+  font-weight: 700; color: #6f7016; text-align: center; margin: 0 0 14px; }
+.hw-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
+  font-size: 2.1rem; text-align: center; margin: 0 0 14px; }
+.hw-sub { color: #43505d; text-align: center; max-width: 60ch; margin: 0 auto 8px; }
+.feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin: 8px 0 44px; }
+.feat h3 { font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 700; color: #1c2530; margin: 0 0 4px; }
+.feat p { color: #43505d; font-size: .92rem; margin: 0; }
+.feat .ic { font-size: 1.3rem; }
+.divider { border: none; border-top: 1px solid #e4ddcf; margin: 8px 0 40px; }
+.sig-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
+  font-size: 2rem; margin: 0 0 6px; }
+.sig-title em { color: #6f7016; font-style: italic; }
+.sig-sub { color: #43505d; margin: 0 0 26px; }
+.sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.sig-card { background: #fff; border: 1px solid #e4ddcf; border-radius: 14px; padding: 22px; }
+.sig-num { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
+  background: #1c2530; color: #fff; font-weight: 700; margin-bottom: 14px; }
+.sig-card h4 { font-family: 'Inter', sans-serif; font-size: 1.02rem; color: #1c2530; margin: 0 0 8px; line-height: 1.25; }
+.sig-card p { color: #43505d; font-size: .92rem; margin: 0; line-height: 1.5; }
+.foot { background: #e7c7bd; border-radius: 16px; padding: 34px 32px; margin: 44px 0 0;
+  display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; }
+.foot .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.3rem; color: #1c2530; margin: 0 0 10px; }
+.foot p { color: #1c2530; margin: 0; font-size: .95rem; }
+.foot .note-title { font-weight: 700; margin: 0 0 8px; }
+.foot .note { color: #9a6b60; }
+@media (max-width: 640px) {
+  .feat-grid, .sig-grid, .foot { grid-template-columns: 1fr; }
+  .hero-inner h1 { font-size: 2.1rem; }
+}
+</style>
+"""
+
+
+def render_landing():
+    st.markdown(LANDING_CSS, unsafe_allow_html=True)
+    bg = hero_data_uri()
+
+    hero = (
+        f'<div class="bg-hero" style="background-image: '
+        f"linear-gradient(100deg, rgba(245,241,233,.95) 0%, rgba(245,241,233,.88) 34%, "
+        f"rgba(245,241,233,.55) 62%, rgba(245,241,233,.12) 100%), url('{bg}');\">"
+        '<div class="hero-inner">'
+        '<p class="eyebrow">A smarter look at math learning</p>'
+        "<h1>Because a grade doesn’t tell the whole story.</h1>"
+        '<p class="lede">A short, adaptive assessment that shows what your child really '
+        "understands — where they may have gaps, and what they’re ready to learn next.</p>"
+        '<a class="cta" href="?go=intake" target="_self">Start the Math Check →</a>'
+        '<p class="meta">Takes about 15 minutes · Grades 2–8</p>'
+        "</div></div>"
+    )
+
+    features = (
+        '<div class="feat-grid">'
+        '<div class="feat"><div class="ic">⚡</div><h3>Identify strengths and gaps</h3>'
+        "<p>Looks below, at, and above grade level.</p></div>"
+        '<div class="feat"><div class="ic">\U0001f4dd</div><h3>Actionable insights</h3>'
+        "<p>Understand what the responses suggest.</p></div>"
+        '<div class="feat"><div class="ic">\U0001f465</div><h3>Built for real learners</h3>'
+        "<p>Adaptive questions, not a fixed worksheet.</p></div>"
+        "</div>"
+    )
+
+    how = (
+        '<p class="section-eyebrow">How it works</p>'
+        '<p class="hw-title">A bigger picture than one score.</p>'
+        '<p class="hw-sub">The assessment follows the learner. If something looks uncertain, '
+        "it checks the foundation. If something looks strong, it explores what’s next.</p>"
+        '<hr class="divider" style="margin-top:30px" />'
+    )
+
+    signals_cards = [
+        ("1", "Says “I understood” — but can’t explain it",
+         "Ask them to teach the lesson back to you. If they get stuck, they memorized it instead of learning it."),
+        ("2", "Only solves problems “like in class”",
+         "Change the wording a little and they no longer know where to start."),
+        ("3", "Counts on fingers for simple facts",
+         "An uncertain times table means every exercise quietly takes twice as long."),
+        ("4", "Avoids math: “No homework today”",
+         "Avoidance isn’t laziness — it’s self-protection when the work feels unsafe."),
+        ("5", "Grades slip gradually, not suddenly",
+         "90% → 80% → 60%. The foundation has gaps, so the collapse is slow and easy to miss."),
+    ]
+    cards_html = "".join(
+        f'<div class="sig-card"><span class="sig-num">{n}</span><h4>{t}</h4><p>{d}</p></div>'
+        for n, t, d in signals_cards
+    )
+    signals = (
+        '<p class="section-eyebrow" style="text-align:left">Check for yourself, at home, in 5 minutes</p>'
+        '<p class="sig-title">5 signs your child has <em>gaps</em> in math.</p>'
+        '<p class="sig-sub">The foundation cracks quietly — here’s what it tends to look like day to day.</p>'
+        f'<div class="sig-grid">{cards_html}</div>'
+    )
+
+    footer = (
+        '<div class="foot"><div>'
+        '<p class="brand">Beyond the Grade</p>'
+        "<p>A parent-friendly way to understand math learning beyond the report card.</p></div>"
+        '<div><p class="note-title">Prototype note</p>'
+        '<p class="note">This version is an engineering prototype. Its results are not '
+        "standardized or diagnostic.</p></div></div>"
+    )
+
+    st.markdown(hero + features + how + signals + footer, unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------------------------
+# Landing
+# ---------------------------------------------------------------------------
+if ss.phase == "landing":
+    render_landing()
+
 # ---------------------------------------------------------------------------
 # Intake
 # ---------------------------------------------------------------------------
-if ss.phase == "intake":
+elif ss.phase == "intake":
     st.title("Beyond the Grade")
     st.markdown("#### Because a grade doesn't tell the whole story.")
     st.write(
