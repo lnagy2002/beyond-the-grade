@@ -85,16 +85,19 @@ def reset():
 LANDING_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
-.block-container { padding: 0.5rem 2.5rem 2rem !important; max-width: 100% !important; }
+html, body { overflow-x: hidden; }
+.block-container { max-width: 1180px !important; padding: 0.5rem 2rem 2rem !important; }
 .bg-hero {
   border-radius: 0; overflow: hidden; background-size: cover; background-position: 62% center;
-  min-height: 620px; display: flex; align-items: center; margin: 0 -2.5rem 44px;
+  min-height: 92vh; display: flex; align-items: center; margin-bottom: 48px;
+  width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);
 }
-.hero-inner { padding: 56px 48px 56px 2.5rem; max-width: 620px; }
+.hero-inner { width: 100%; padding-left: max(2rem, calc((100vw - 1180px) / 2 + 2rem)); padding-right: 2rem; }
+.hero-text { max-width: 620px; padding: 56px 0; }
 .hero-inner .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
   font-weight: 700; color: #6f7016; margin: 0 0 18px; }
 .hero-inner h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
-  font-size: clamp(2.4rem, 5vw, 4rem); line-height: 1.02; margin: 0 0 24px; }
+  font-size: clamp(2.6rem, 5.2vw, 4.25rem); line-height: 1.02; margin: 0 0 26px; }
 .hero-inner .lede { color: #43505d; font-size: 1.14rem; max-width: 44ch; margin: 0 0 30px; }
 .hero-inner .meta { color: #8a8578; font-size: .95rem; margin: 18px 0 0; }
 a.cta { display: inline-block; background: #1c2530; color: #fff !important; padding: 14px 24px;
@@ -120,7 +123,8 @@ a.cta:hover { background: #10161d; }
   background: #1c2530; color: #fff; font-weight: 700; font-size: 1.05rem; margin-bottom: 20px; }
 .sig-card h4 { font-family: 'Inter', sans-serif; font-size: 1.18rem; color: #1c2530; margin: 0 0 12px; line-height: 1.25; }
 .sig-card p { color: #43505d; font-size: .98rem; margin: 0; line-height: 1.55; }
-.foot { background: #e7c7bd; border-radius: 0; padding: 48px 2.5rem; margin: 48px -2.5rem 0;
+.foot { background: #e7c7bd; border-radius: 0; width: 100vw; margin: 48px calc(-50vw + 50%) 0;
+  padding: 48px max(2rem, calc((100vw - 1180px) / 2 + 2rem));
   display: grid; grid-template-columns: 1.1fr 1fr; gap: 60px; }
 .foot .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.5rem; color: #1c2530; margin: 0 0 14px; }
 .foot p { color: #1c2530; margin: 0; font-size: 1.02rem; }
@@ -142,14 +146,14 @@ def render_landing():
         f'<div class="bg-hero" style="background-image: '
         f"linear-gradient(100deg, rgba(245,241,233,.95) 0%, rgba(245,241,233,.88) 34%, "
         f"rgba(245,241,233,.55) 62%, rgba(245,241,233,.12) 100%), url('{bg}');\">"
-        '<div class="hero-inner">'
+        '<div class="hero-inner"><div class="hero-text">'
         '<p class="eyebrow">A smarter look at math learning</p>'
         "<h1>Because a grade doesn’t tell the whole story.</h1>"
         '<p class="lede">A short, adaptive assessment that shows what your child really '
         "understands — where they may have gaps, and what they’re ready to learn next.</p>"
         '<a class="cta" href="?go=intake" target="_self">Start the Math Check →</a>'
         '<p class="meta">Takes about 15 minutes · Grades 2–8</p>'
-        "</div></div>"
+        "</div></div></div>"
     )
 
     features = (
