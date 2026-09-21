@@ -97,7 +97,7 @@ html, body { overflow-x: hidden; }
 .hero-inner .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
   font-weight: 700; color: #6f7016; margin: 0 0 18px; }
 .hero-inner h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
-  font-size: clamp(2.6rem, 5.2vw, 4.25rem); line-height: 1.02; margin: 0 0 26px; }
+  font-size: clamp(2.6rem, 5.2vw, 4.25rem) !important; line-height: 1.02; margin: 0 0 26px; }
 .hero-inner .lede { color: #43505d; font-size: 1.14rem; max-width: 44ch; margin: 0 0 30px; }
 .hero-inner .meta { color: #8a8578; font-size: .95rem; margin: 18px 0 0; }
 a.cta { display: inline-block; background: #1c2530; color: #fff !important; padding: 14px 24px;
@@ -117,15 +117,15 @@ a.cta:hover { background: #10161d; }
 .hw-band { background: #efe9dc; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 72px max(2rem, calc((100vw - 1180px) / 2 + 2rem)) 90px; text-align: center; }
 .hw-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
-  font-size: clamp(2.2rem, 5vw, 3.4rem); text-align: center; margin: 0 0 14px; }
-.hw-sub { color: #43505d; text-align: center; max-width: 62ch; font-size: 1.12rem; margin: 0 auto; }
+  font-size: clamp(2.2rem, 5vw, 3.4rem) !important; line-height: 1.08; text-align: center !important; margin: 0 0 16px; }
+.hw-sub { color: #43505d; text-align: center !important; max-width: 62ch; font-size: 1.12rem !important; margin: 0 auto; }
 /* Signals — white full-width band */
 .sig-band { background: #fff; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 72px max(2rem, calc((100vw - 1180px) / 2 + 2rem)); }
 .sig-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
-  font-size: clamp(2.1rem, 4.6vw, 3.3rem); margin: 0 0 6px; }
+  font-size: clamp(2.1rem, 4.6vw, 3.3rem) !important; line-height: 1.1; margin: 0 0 8px; }
 .sig-title em { color: #6f7016; font-style: italic; }
-.sig-sub { color: #43505d; font-size: 1.1rem; margin: 0 0 26px; }
+.sig-sub { color: #43505d; font-size: 1.1rem !important; margin: 0 0 26px; }
 .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .sig-card { background: #fff; border: 1px solid #e4ddcf; border-radius: 16px; padding: 26px; }
 .sig-num { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
