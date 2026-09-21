@@ -85,12 +85,12 @@ def reset():
 LANDING_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
-.block-container { padding-top: 1.2rem; max-width: 900px; }
+.block-container { padding: 0.5rem 2.5rem 2rem !important; max-width: 100% !important; }
 .bg-hero {
-  border-radius: 18px; overflow: hidden; background-size: cover; background-position: 62% center;
-  min-height: 440px; display: flex; align-items: center; margin-bottom: 40px;
+  border-radius: 0; overflow: hidden; background-size: cover; background-position: 62% center;
+  min-height: 500px; display: flex; align-items: center; margin: 0 -2.5rem 44px;
 }
-.hero-inner { padding: 44px 40px; max-width: 560px; }
+.hero-inner { padding: 44px 48px; max-width: 620px; }
 .hero-inner .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
   font-weight: 700; color: #6f7016; margin: 0 0 14px; }
 .hero-inner h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
@@ -120,7 +120,7 @@ a.cta:hover { background: #10161d; }
   background: #1c2530; color: #fff; font-weight: 700; margin-bottom: 14px; }
 .sig-card h4 { font-family: 'Inter', sans-serif; font-size: 1.02rem; color: #1c2530; margin: 0 0 8px; line-height: 1.25; }
 .sig-card p { color: #43505d; font-size: .92rem; margin: 0; line-height: 1.5; }
-.foot { background: #e7c7bd; border-radius: 16px; padding: 34px 32px; margin: 44px 0 0;
+.foot { background: #e7c7bd; border-radius: 0; padding: 44px 2.5rem; margin: 48px -2.5rem 0;
   display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; }
 .foot .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.3rem; color: #1c2530; margin: 0 0 10px; }
 .foot p { color: #1c2530; margin: 0; font-size: .95rem; }
