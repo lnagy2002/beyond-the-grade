@@ -49,10 +49,28 @@ ss.setdefault("state", None)
 ss.setdefault("current_q", None)
 ss.setdefault("child", None)
 
-# CTA links on the landing page navigate via a query param.
-if st.query_params.get("go") == "intake":
+# CTA / nav links navigate via a query param.
+_go = st.query_params.get("go")
+if _go == "intake":
     ss.phase = "intake"
     st.query_params.clear()
+elif _go == "home":
+    ss.phase = "landing"
+    st.query_params.clear()
+
+# Shared top nav (used by the landing and intake pages).
+NAV_HTML = (
+    '<div class="nav">'
+    '<a class="brand" href="?go=home" target="_self">Beyond the Grade</a>'
+    '<div class="nav-links">'
+    '<a href="#how">How It Works</a>'
+    '<a href="#signs">Sample Report</a>'
+    '<a href="#signs">FAQs</a>'
+    '<a href="#signs">Resources</a>'
+    '<a href="?go=intake" target="_self">Sign In</a>'
+    '<a class="nav-cta" href="?go=intake" target="_self">Get Started</a>'
+    "</div></div>"
+)
 
 
 def start(name, grade, age):
@@ -164,22 +182,61 @@ a.cta:hover { background: #10161d; }
 """
 
 
+INTAKE_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
+header[data-testid="stHeader"] { display: none; }
+.block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
+  max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 3rem !important; }
+[data-testid="stVerticalBlock"] { gap: 0 !important; }
+html, body { overflow-x: hidden; }
+.stApp, .stApp p, .stApp label, .stApp input, .stApp button, .stApp div { font-family: 'Inter', system-ui, sans-serif; }
+/* Top nav */
+.nav { background: #f4f0e7; width: 100vw; margin: 0 calc(-50vw + 50%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #1c2530 !important; text-decoration: none !important; }
+.nav-links { display: flex; align-items: center; gap: 26px; }
+.nav-links a { color: #43505d !important; text-decoration: none !important; font-size: .95rem; }
+.nav-links a:hover { color: #1c2530 !important; }
+.nav-links a.nav-cta { background: #1c2530; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+/* Stepper */
+.stepper { display: flex; align-items: center; gap: 12px; margin: 40px 0 34px; }
+.step { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: #8a8578; white-space: nowrap; }
+.step.active { color: #1c2530; font-weight: 600; }
+.step .dot { width: 12px; height: 12px; border-radius: 50%; background: #cdc7b8; }
+.step.active .dot { background: #1c2530; }
+.stepline { flex: 1; height: 3px; background: #ded8c9; border-radius: 3px; min-width: 24px; }
+/* Heading */
+h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #1c2530;
+  font-size: clamp(2.2rem, 4.4vw, 3.1rem) !important; line-height: 1.05; margin: 0 0 12px; padding: 0; }
+.intake-sub { color: #43505d; font-size: 1.06rem; margin: 0 0 30px; }
+/* Form fields */
+.stTextInput, .stSelectbox, .stNumberInput { margin-bottom: 22px !important; }
+[data-testid="stWidgetLabel"] p { font-weight: 600 !important; color: #1c2530 !important; font-size: .95rem !important; }
+.stTextInput input, .stNumberInput input {
+  background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
+  padding: 14px 16px !important; font-size: 1rem !important; color: #1c2530 !important; }
+.stNumberInput button { display: none !important; }
+.stSelectbox div[data-baseweb="select"] > div {
+  background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
+  padding: 6px 6px 6px 8px !important; font-size: 1rem !important; }
+/* Next button */
+.stFormSubmitButton button {
+  background: #1c2530 !important; color: #fff !important; border: none !important; border-radius: 12px !important;
+  width: 100% !important; padding: 14px 0 !important; font-weight: 600 !important; margin-top: 4px; }
+.stFormSubmitButton button:hover { background: #10161d !important; }
+.stFormSubmitButton button p { font-size: 1.02rem !important; }
+[data-testid="stForm"] { border: none !important; padding: 0 !important; }
+</style>
+"""
+
+
 def render_landing():
     st.markdown(LANDING_CSS, unsafe_allow_html=True)
     bg = hero_data_uri()
 
-    nav = (
-        '<div class="nav">'
-        '<a class="brand" href="?" target="_self">Beyond the Grade</a>'
-        '<div class="nav-links">'
-        '<a href="#how">How It Works</a>'
-        '<a href="#signs">Sample Report</a>'
-        '<a href="#signs">FAQs</a>'
-        '<a href="#signs">Resources</a>'
-        '<a href="?go=intake" target="_self">Sign In</a>'
-        '<a class="nav-cta" href="?go=intake" target="_self">Get Started</a>'
-        "</div></div>"
-    )
+    nav = NAV_HTML
 
     hero = (
         f'<div class="bg-hero" style="background-image: '
@@ -275,24 +332,39 @@ if ss.phase == "landing":
 # Intake
 # ---------------------------------------------------------------------------
 elif ss.phase == "intake":
-    st.title("Beyond the Grade")
-    st.markdown("#### Because a grade doesn't tell the whole story.")
-    st.write(
-        "A short, adaptive assessment that shows what your child really understands — "
-        "where they may have gaps, and what they're ready to learn next."
-    )
-    with st.form("intake"):
-        name = st.text_input("Child's first name", placeholder="Alex")
-        grade = st.selectbox("Current grade", [2, 3, 4, 5, 6, 7, 8], index=4, format_func=lambda g: f"Grade {g}")
-        age = st.number_input("Child's age (optional)", min_value=5, max_value=18, value=None, step=1)
-        submitted = st.form_submit_button("Start the Math Check →", type="primary")
-    st.caption("Takes about 15 minutes · Grades 2–8")
-    if submitted:
-        if not name.strip():
-            st.error("Please enter a first name to begin.")
-        else:
-            start(name.strip(), int(grade), age)
-            st.rerun()
+    st.markdown(INTAKE_CSS, unsafe_allow_html=True)
+    st.markdown(NAV_HTML, unsafe_allow_html=True)
+
+    _, col, _ = st.columns([1, 2.6, 1])
+    with col:
+        st.markdown(
+            '<div class="stepper">'
+            '<span class="step active"><span class="dot"></span>1. About You</span>'
+            '<span class="stepline"></span>'
+            '<span class="step"><span class="dot"></span>2. Assessment</span>'
+            '<span class="stepline"></span>'
+            '<span class="step"><span class="dot"></span>3. Results</span>'
+            "</div>"
+            '<h1 class="intake-h1">Let’s get started.</h1>'
+            '<p class="intake-sub">Tell us a little about your child.</p>',
+            unsafe_allow_html=True,
+        )
+        with st.form("intake", border=False):
+            name = st.text_input("Child's first name", placeholder="Alex")
+            grade = st.selectbox(
+                "Current grade", ["", 2, 3, 4, 5, 6, 7, 8],
+                format_func=lambda g: "Select a grade" if g == "" else f"Grade {g}",
+            )
+            age = st.number_input("Child's age (optional)", min_value=5, max_value=18, value=None, step=1)
+            submitted = st.form_submit_button("Next →", type="primary")
+        if submitted:
+            if not name.strip():
+                st.error("Please enter a first name to begin.")
+            elif grade == "":
+                st.error("Please select a grade.")
+            else:
+                start(name.strip(), int(grade), age)
+                st.rerun()
 
 # ---------------------------------------------------------------------------
 # Assessment
