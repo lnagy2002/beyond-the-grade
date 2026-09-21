@@ -110,15 +110,17 @@ a.cta:hover { background: #10161d; }
   padding: 46px max(2rem, calc((100vw - 1180px) / 2 + 2rem)); }
 .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
 .feat { display: flex; align-items: flex-start; gap: 14px; text-align: left; }
-.fic { color: #1c2530; flex: 0 0 auto; display: inline-flex; margin-top: 2px; }
-.ftext h3 { font-family: 'Inter', sans-serif; font-size: 1.02rem; font-weight: 700; color: #1c2530; margin: 0 0 4px; }
-.ftext p { color: #43505d; font-size: .95rem; margin: 0; }
+.fic { color: #1c2530; flex: 0 0 auto; display: inline-flex; margin-top: 1px; }
+.ft-title { font-family: 'Inter', sans-serif; font-size: 1.08rem !important; font-weight: 700;
+  color: #1c2530; margin: 0 0 5px !important; line-height: 1.3; }
+.ft-sub { color: #43505d; font-size: .98rem !important; margin: 0 !important; line-height: 1.45; }
 /* How it works — full-width cream band */
 .hw-band { background: #efe9dc; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 72px max(2rem, calc((100vw - 1180px) / 2 + 2rem)) 90px; text-align: center; }
 .hw-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
   font-size: clamp(2.2rem, 5vw, 3.4rem) !important; line-height: 1.08; text-align: center !important; margin: 0 0 16px; }
-.hw-sub { color: #43505d; text-align: center !important; max-width: 62ch; font-size: 1.12rem !important; margin: 0 auto; }
+.hw-sub { display: inline-block !important; color: #43505d; text-align: center !important;
+  max-width: 62ch; font-size: 1.12rem !important; margin: 0 auto; }
 /* Signals — white full-width band */
 .sig-band { background: #fff; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 72px max(2rem, calc((100vw - 1180px) / 2 + 2rem)); }
@@ -178,11 +180,14 @@ def render_landing():
     features = (
         '<div class="feat-band"><div class="feat-grid">'
         f'<div class="feat"><span class="fic">{svg_bolt}</span><div class="ftext">'
-        "<h3>Identify strengths and gaps</h3><p>Looks below, at, and above grade level.</p></div></div>"
+        '<div class="ft-title">Identify strengths and gaps</div>'
+        '<div class="ft-sub">Looks below, at, and above grade level.</div></div></div>'
         f'<div class="feat"><span class="fic">{svg_lines}</span><div class="ftext">'
-        "<h3>Actionable insights</h3><p>Understand what the responses suggest.</p></div></div>"
+        '<div class="ft-title">Actionable insights</div>'
+        '<div class="ft-sub">Understand what the responses suggest.</div></div></div>'
         f'<div class="feat"><span class="fic">{svg_circle}</span><div class="ftext">'
-        "<h3>Built for real learners</h3><p>Adaptive questions, not a fixed worksheet.</p></div></div>"
+        '<div class="ft-title">Built for real learners</div>'
+        '<div class="ft-sub">Adaptive questions, not a fixed worksheet.</div></div></div>'
         "</div></div>"
     )
 
