@@ -58,6 +58,20 @@ elif _go == "home":
     ss.phase = "landing"
     st.query_params.clear()
 
+def build_stepper(active):
+    """Progress stepper HTML; `active` is 1 (About You), 2 (Assessment), 3 (Results)."""
+    labels = ["1. About You", "2. Assessment", "3. Results"]
+    out = ['<div class="stepper">']
+    for i, label in enumerate(labels, start=1):
+        active_cls = " active" if i == active else ""
+        dot_style = ' style="background:#1c2530"' if i <= active else ""
+        out.append(f'<span class="step{active_cls}"><span class="dot"{dot_style}></span>{label}</span>')
+        if i < 3:
+            out.append(f'<span class="{"stepline done" if i < active else "stepline"}"></span>')
+    out.append("</div>")
+    return "".join(out)
+
+
 # Shared top nav (used by the landing and intake pages).
 NAV_HTML = (
     '<div class="nav">'
@@ -216,11 +230,13 @@ h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 
 [data-testid="stWidgetLabel"] p { font-weight: 600 !important; color: #1c2530 !important; font-size: .95rem !important; }
 .stTextInput input, .stNumberInput input {
   background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
-  padding: 14px 16px !important; font-size: 1rem !important; color: #1c2530 !important; }
+  height: 52px !important; padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; box-sizing: border-box; }
+.stTextInput div[data-baseweb="input"], .stNumberInput div[data-baseweb="input"] {
+  border-radius: 12px !important; background: transparent !important; }
 .stNumberInput button { display: none !important; }
 .stSelectbox div[data-baseweb="select"] > div {
   background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
-  min-height: 52px !important; align-items: center !important; font-size: 1rem !important; }
+  height: 52px !important; min-height: 52px !important; align-items: center !important; font-size: 1rem !important; box-sizing: border-box; }
 .stSelectbox div[data-baseweb="select"] > div > div { padding-left: 6px !important; }
 /* Next button */
 .stFormSubmitButton button {
@@ -229,6 +245,58 @@ h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 
 .stFormSubmitButton button:hover { background: #10161d !important; }
 .stFormSubmitButton button p { font-size: 1.02rem !important; }
 [data-testid="stForm"] { border: none !important; padding: 0 !important; }
+</style>
+"""
+
+
+ASSESSMENT_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
+header[data-testid="stHeader"] { display: none; }
+.block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
+  max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 3rem !important; }
+[data-testid="stVerticalBlock"] { gap: 0 !important; }
+html, body { overflow-x: hidden; }
+.stApp, .stApp p, .stApp label, .stApp input, .stApp button, .stApp div { font-family: 'Inter', system-ui, sans-serif; }
+/* Top nav */
+.nav { background: #f4f0e7; width: 100vw; margin: 0 calc(-50vw + 50%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #1c2530 !important; text-decoration: none !important; }
+.nav-links { display: flex; align-items: center; gap: 26px; }
+.nav-links a { color: #43505d !important; text-decoration: none !important; font-size: .95rem; }
+.nav-links a:hover { color: #1c2530 !important; }
+.nav-links a.nav-cta { background: #1c2530; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+/* Stepper */
+.stepper { display: flex; align-items: center; gap: 12px; margin: 40px 0 34px; }
+.step { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: #8a8578; white-space: nowrap; }
+.step.active { color: #1c2530; font-weight: 600; }
+.step .dot { width: 12px; height: 12px; border-radius: 50%; background: #cdc7b8; }
+.stepline { flex: 1; height: 3px; background: #ded8c9; border-radius: 3px; min-width: 24px; }
+.stepline.done { background: #1c2530; }
+/* Question head */
+.qhead { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
+.qchip { background: #f0dcd5; color: #8f5a4c; font-weight: 600; font-size: .9rem; padding: 8px 18px; border-radius: 999px; }
+.qnum { color: #8a8578; font-size: 1rem; }
+.qprompt { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem); line-height: 1.15; margin: 0 0 28px; }
+/* Choices as cards */
+.stRadio [role="radiogroup"] { display: flex; flex-direction: column; gap: 12px; }
+.stRadio [role="radiogroup"] > label {
+  background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 14px !important;
+  padding: 18px 20px !important; margin: 0 !important; width: 100% !important;
+  display: flex !important; align-items: center !important; cursor: pointer; }
+.stRadio [role="radiogroup"] > label:hover { border-color: #b6b73f !important; }
+.stRadio [role="radiogroup"] > label:has(input:checked) { border-color: #b6b73f !important; background: #fbfae9 !important; }
+.stRadio [role="radiogroup"] > label > div:last-child { font-size: 1.08rem !important; color: #1c2530 !important; }
+/* Short-answer input */
+.stTextInput input { background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 14px !important;
+  height: 56px !important; padding: 0 18px !important; font-size: 1.1rem !important; color: #1c2530 !important; box-sizing: border-box; }
+/* Progress + Next */
+.stProgress > div > div > div > div { background-color: #1c2530 !important; }
+.stButton button { background: #1c2530 !important; color: #fff !important; border: none !important;
+  border-radius: 12px !important; padding: 12px 26px !important; font-weight: 600 !important; }
+.stButton button:disabled { background: #b7bcc2 !important; color: #fff !important; }
 </style>
 """
 
@@ -339,15 +407,9 @@ elif ss.phase == "intake":
     _, col, _ = st.columns([1, 2.6, 1])
     with col:
         st.markdown(
-            '<div class="stepper">'
-            '<span class="step active"><span class="dot"></span>1. About You</span>'
-            '<span class="stepline"></span>'
-            '<span class="step"><span class="dot"></span>2. Assessment</span>'
-            '<span class="stepline"></span>'
-            '<span class="step"><span class="dot"></span>3. Results</span>'
-            "</div>"
-            '<h1 class="intake-h1">Let’s get started.</h1>'
-            '<p class="intake-sub">Tell us a little about your child.</p>',
+            build_stepper(1)
+            + '<h1 class="intake-h1">Let’s get started.</h1>'
+            + '<p class="intake-sub">Tell us a little about your child.</p>',
             unsafe_allow_html=True,
         )
         with st.form("intake", border=False):
@@ -371,28 +433,36 @@ elif ss.phase == "intake":
 # Assessment
 # ---------------------------------------------------------------------------
 elif ss.phase == "assessment":
+    st.markdown(ASSESSMENT_CSS, unsafe_allow_html=True)
+    st.markdown(NAV_HTML, unsafe_allow_html=True)
+
     q = ss.current_q
     state = ss.state
     current_num = state["questionCount"] + 1
 
-    st.progress(min(state["questionCount"] / state["maxQuestions"], 1.0))
-    st.markdown(
-        f"<span class='chip'>{engine.SKILL_LABELS.get(q['skill'], q['skill'])}</span> "
-        f"&nbsp;&nbsp;<span style='color:#8a8578'>Question {current_num}</span>",
-        unsafe_allow_html=True,
-    )
-    st.subheader(q["prompt"])
+    _, col, _ = st.columns([1, 3.4, 1])
+    with col:
+        st.markdown(build_stepper(2), unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="qhead"><span class="qchip">{engine.SKILL_LABELS.get(q["skill"], q["skill"])}</span>'
+            f'<span class="qnum">Question {current_num}</span></div>'
+            f'<div class="qprompt">{q["prompt"]}</div>',
+            unsafe_allow_html=True,
+        )
 
-    key = f"resp_{q['id']}"
-    if q.get("type") == "short_answer" or not q.get("choices"):
-        response = st.text_input("Your answer", key=key, placeholder="Type your answer")
-    else:
-        response = st.radio("Choose one:", q["choices"], index=None, key=key)
-
-    if st.button("Next →", type="primary"):
-        if response is None or (isinstance(response, str) and response.strip() == ""):
-            st.warning("Pick an answer to continue.")
+        key = f"resp_{q['id']}"
+        if q.get("type") == "short_answer" or not q.get("choices"):
+            response = st.text_input("Your answer", key=key, placeholder="Type your answer", label_visibility="collapsed")
         else:
+            response = st.radio("Choose one:", q["choices"], index=None, key=key, label_visibility="collapsed")
+
+        disabled = response is None or (isinstance(response, str) and response.strip() == "")
+        pc1, pc2 = st.columns([4, 1])
+        with pc1:
+            st.progress(min(state["questionCount"] / state["maxQuestions"], 1.0))
+        with pc2:
+            clicked = st.button("Next →", type="primary", disabled=disabled, use_container_width=True)
+        if clicked and not disabled:
             submit_answer(response)
             st.rerun()
 
