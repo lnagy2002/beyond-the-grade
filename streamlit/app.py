@@ -334,7 +334,7 @@ h1.done-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 60
   font-size: clamp(2.6rem, 5vw, 3.6rem) !important; margin: 0 0 16px; }
 .done-sub { color: #43505d; font-size: 1.15rem; margin: 0 0 32px; text-align: center; }
 .done-note { font-family: 'Caveat', cursive; font-size: 1.6rem; color: #1c2530; text-align: center;
-  transform: rotate(-3deg); margin-top: 22px; }
+  transform: rotate(-3deg); margin-top: 40px; }
 .stButton { display: flex; justify-content: center; }
 .stButton button { background: #1c2530 !important; color: #fff !important; border: none !important;
   border-radius: 12px !important; padding: 14px 30px !important; font-weight: 600 !important; font-size: 1.05rem !important; }
