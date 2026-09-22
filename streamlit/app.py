@@ -228,15 +228,16 @@ h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 
 /* Form fields */
 .stTextInput, .stSelectbox, .stNumberInput { margin-bottom: 22px !important; }
 [data-testid="stWidgetLabel"] p { font-weight: 600 !important; color: #1c2530 !important; font-size: .95rem !important; }
-.stTextInput input, .stNumberInput input {
-  background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
-  height: 52px !important; padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; box-sizing: border-box; }
-.stTextInput div[data-baseweb="input"], .stNumberInput div[data-baseweb="input"] {
-  border-radius: 12px !important; background: transparent !important; }
-.stNumberInput button { display: none !important; }
+/* Uniform 52px control boxes: border/height on the BaseWeb container for all three */
+.stTextInput div[data-baseweb="input"],
+.stNumberInput div[data-baseweb="input"],
 .stSelectbox div[data-baseweb="select"] > div {
   background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
-  height: 52px !important; min-height: 52px !important; align-items: center !important; font-size: 1rem !important; box-sizing: border-box; }
+  height: 52px !important; min-height: 52px !important; box-sizing: border-box !important; align-items: center !important; }
+.stTextInput input, .stNumberInput input {
+  background: transparent !important; border: none !important; height: 50px !important;
+  padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; }
+.stNumberInput button { display: none !important; }
 .stSelectbox div[data-baseweb="select"] > div > div { padding-left: 6px !important; }
 /* Next button */
 .stFormSubmitButton button {
@@ -289,10 +290,16 @@ html, body { overflow-x: hidden; }
 .stRadio [role="radiogroup"] > label:hover { border-color: #b6b73f !important; }
 .stRadio [role="radiogroup"] > label:has(input:checked) { border-color: #b6b73f !important; background: #fbfae9 !important; }
 .stRadio [role="radiogroup"] > label > div:last-child { font-size: 1.08rem !important; color: #1c2530 !important; }
-/* Short-answer input — same height as intake inputs */
-.stTextInput input { background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
-  height: 52px !important; padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; box-sizing: border-box; }
-/* Progress + Next */
+/* Short-answer input — same 52px box as intake inputs */
+.stTextInput div[data-baseweb="input"] {
+  background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
+  height: 52px !important; min-height: 52px !important; box-sizing: border-box !important; align-items: center !important; }
+.stTextInput input { background: transparent !important; border: none !important; height: 50px !important;
+  padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; }
+/* Progress + Next — tan track (not white) so it reads distinct from the cards */
+.stProgress [role="progressbar"] { background-color: #ded8c9 !important; }
+.stProgress [role="progressbar"] > div { background-color: #1c2530 !important; }
+.stProgress > div > div { background-color: #ded8c9 !important; }
 .stProgress > div > div > div > div { background-color: #1c2530 !important; }
 .stButton button { background: #1c2530 !important; color: #fff !important; border: none !important;
   border-radius: 12px !important; padding: 12px 26px !important; font-weight: 600 !important; }
@@ -457,6 +464,7 @@ elif ss.phase == "assessment":
             response = st.radio("Choose one:", q["choices"], index=None, key=key, label_visibility="collapsed")
 
         disabled = response is None or (isinstance(response, str) and response.strip() == "")
+        st.markdown('<div style="height:52px"></div>', unsafe_allow_html=True)
         pc1, pc2 = st.columns([4, 1])
         with pc1:
             st.progress(min(state["questionCount"] / state["maxQuestions"], 1.0))
