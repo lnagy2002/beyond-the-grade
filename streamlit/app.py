@@ -296,9 +296,9 @@ html, body { overflow-x: hidden; }
   height: 52px !important; min-height: 52px !important; box-sizing: border-box !important; align-items: center !important; }
 .stTextInput input { background: transparent !important; border: none !important; height: 50px !important;
   padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; }
-/* Progress + Next — warm gray track (not white) so it reads distinct from the cards */
-.stProgress [role="progressbar"] { background-color: #cdc7b8 !important; }
-.stProgress [role="progressbar"] > div { background-color: #1c2530 !important; }
+/* Progress bar — custom HTML (warm gray track, ink fill) */
+.qprog { height: 8px; background: #cdc7b8; border-radius: 6px; width: 100%; overflow: hidden; }
+.qprog-fill { height: 100%; background: #1c2530; border-radius: 6px; }
 /* Vertically center the progress bar with the Next button */
 [data-testid="stHorizontalBlock"] { align-items: center !important; }
 .stButton button { background: #1c2530 !important; color: #fff !important; border: none !important;
@@ -467,7 +467,8 @@ elif ss.phase == "assessment":
         st.markdown('<div style="height:52px"></div>', unsafe_allow_html=True)
         pc1, pc2 = st.columns([4, 1])
         with pc1:
-            st.progress(min(state["questionCount"] / state["maxQuestions"], 1.0))
+            pct = round(min(state["questionCount"] / state["maxQuestions"], 1.0) * 100)
+            st.markdown(f'<div class="qprog"><div class="qprog-fill" style="width:{pct}%"></div></div>', unsafe_allow_html=True)
         with pc2:
             clicked = st.button("Next →", type="primary", disabled=disabled, use_container_width=True)
         if clicked and not disabled:
