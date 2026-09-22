@@ -425,7 +425,7 @@ elif ss.phase == "intake":
                 "Current grade", ["", 2, 3, 4, 5, 6, 7, 8],
                 format_func=lambda g: "Select a grade" if g == "" else f"Grade {g}",
             )
-            age = st.number_input("Child's age (optional)", min_value=5, max_value=18, value=None, step=1)
+            age = st.text_input("Child's age (optional)", placeholder="11")
             submitted = st.form_submit_button("Next →", type="primary")
         if submitted:
             if not name.strip():
@@ -433,7 +433,7 @@ elif ss.phase == "intake":
             elif grade == "":
                 st.error("Please select a grade.")
             else:
-                start(name.strip(), int(grade), age)
+                start(name.strip(), int(grade), age.strip() or None)
                 st.rerun()
 
 # ---------------------------------------------------------------------------
