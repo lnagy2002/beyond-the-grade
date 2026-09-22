@@ -278,20 +278,20 @@ html, body { overflow-x: hidden; }
 .qhead { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
 .qchip { background: #f0dcd5; color: #8f5a4c; font-weight: 600; font-size: .9rem; padding: 8px 18px; border-radius: 999px; }
 .qnum { color: #8a8578; font-size: 1rem; }
-.qprompt { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #1c2530;
-  font-size: clamp(1.8rem, 3.2vw, 2.4rem); line-height: 1.15; margin: 0 0 28px; }
+.qprompt { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #1c2530;
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem) !important; line-height: 1.15; margin: 0 0 24px; }
 /* Choices as cards */
 .stRadio [role="radiogroup"] { display: flex; flex-direction: column; gap: 12px; }
 .stRadio [role="radiogroup"] > label {
   background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 14px !important;
-  padding: 18px 20px !important; margin: 0 !important; width: 100% !important;
+  padding: 16px 20px !important; margin: 0 !important; width: 100% !important; min-height: 58px !important;
   display: flex !important; align-items: center !important; cursor: pointer; }
 .stRadio [role="radiogroup"] > label:hover { border-color: #b6b73f !important; }
 .stRadio [role="radiogroup"] > label:has(input:checked) { border-color: #b6b73f !important; background: #fbfae9 !important; }
 .stRadio [role="radiogroup"] > label > div:last-child { font-size: 1.08rem !important; color: #1c2530 !important; }
-/* Short-answer input */
-.stTextInput input { background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 14px !important;
-  height: 56px !important; padding: 0 18px !important; font-size: 1.1rem !important; color: #1c2530 !important; box-sizing: border-box; }
+/* Short-answer input — same height as intake inputs */
+.stTextInput input { background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
+  height: 52px !important; padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; box-sizing: border-box; }
 /* Progress + Next */
 .stProgress > div > div > div > div { background-color: #1c2530 !important; }
 .stButton button { background: #1c2530 !important; color: #fff !important; border: none !important;
