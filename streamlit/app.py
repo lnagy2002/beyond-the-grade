@@ -220,7 +220,8 @@ h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 
 .stNumberInput button { display: none !important; }
 .stSelectbox div[data-baseweb="select"] > div {
   background: #fff !important; border: 1px solid #e4ddcf !important; border-radius: 12px !important;
-  padding: 6px 6px 6px 8px !important; font-size: 1rem !important; }
+  min-height: 52px !important; align-items: center !important; font-size: 1rem !important; }
+.stSelectbox div[data-baseweb="select"] > div > div { padding-left: 6px !important; }
 /* Next button */
 .stFormSubmitButton button {
   background: #1c2530 !important; color: #fff !important; border: none !important; border-radius: 12px !important;
