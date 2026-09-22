@@ -99,12 +99,12 @@ def submit_answer(response):
     engine.answer_question(ss.state, ss.current_q, response)
     if engine.should_stop(ss.state):
         ss.current_q = None
-        ss.phase = "results"
+        ss.phase = "done"
     else:
         nxt = engine.choose_next_question(ss.state)
         ss.current_q = nxt
         if nxt is None:
-            ss.phase = "results"
+            ss.phase = "done"
 
 
 def reset():
@@ -308,6 +308,41 @@ html, body { overflow-x: hidden; }
 """
 
 
+DONE_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&family=Caveat:wght@600&display=swap');
+header[data-testid="stHeader"] { display: none; }
+.block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
+  max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 3rem !important; }
+[data-testid="stVerticalBlock"] { gap: 0 !important; }
+html, body { overflow-x: hidden; }
+.stApp, .stApp p, .stApp label, .stApp div { font-family: 'Inter', system-ui, sans-serif; }
+/* Top nav */
+.nav { background: #f4f0e7; width: 100vw; margin: 0 calc(-50vw + 50%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #1c2530 !important; text-decoration: none !important; }
+.nav-links { display: flex; align-items: center; gap: 26px; }
+.nav-links a { color: #43505d !important; text-decoration: none !important; font-size: .95rem; }
+.nav-links a:hover { color: #1c2530 !important; }
+.nav-links a.nav-cta { background: #1c2530; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+/* Done page */
+.done-wrap { text-align: center; margin-top: 64px; }
+.check-badge { width: 96px; height: 96px; border-radius: 50%; background: #efe9dc; border: 1px solid #e4ddcf;
+  display: flex; align-items: center; justify-content: center; font-size: 2.6rem; color: #1c2530; margin: 0 auto 30px; }
+h1.done-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #1c2530;
+  font-size: clamp(2.6rem, 5vw, 3.6rem) !important; margin: 0 0 16px; }
+.done-sub { color: #43505d; font-size: 1.15rem; margin: 0 0 32px; text-align: center; }
+.done-note { font-family: 'Caveat', cursive; font-size: 1.6rem; color: #1c2530; text-align: center;
+  transform: rotate(-3deg); margin-top: 22px; }
+.stButton { display: flex; justify-content: center; }
+.stButton button { background: #1c2530 !important; color: #fff !important; border: none !important;
+  border-radius: 12px !important; padding: 14px 30px !important; font-weight: 600 !important; font-size: 1.05rem !important; }
+.stButton button:hover { background: #10161d !important; }
+</style>
+"""
+
+
 def render_landing():
     st.markdown(LANDING_CSS, unsafe_allow_html=True)
     bg = hero_data_uri()
@@ -474,6 +509,28 @@ elif ss.phase == "assessment":
         if clicked and not disabled:
             submit_answer(response)
             st.rerun()
+
+# ---------------------------------------------------------------------------
+# Done (interstitial before the report)
+# ---------------------------------------------------------------------------
+elif ss.phase == "done":
+    st.markdown(DONE_CSS, unsafe_allow_html=True)
+    st.markdown(NAV_HTML, unsafe_allow_html=True)
+    name = ss.child["name"] if ss.child else "your child"
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+        st.markdown(
+            '<div class="done-wrap">'
+            '<div class="check-badge">✓</div>'
+            '<h1 class="done-h1">All done!</h1>'
+            f'<p class="done-sub">We’ve analyzed {name}’s responses and the Math Snapshot is ready.</p>'
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("View Results →", type="primary"):
+            ss.phase = "results"
+            st.rerun()
+        st.markdown('<p class="done-note">Progress starts with understanding.</p>', unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Results
