@@ -296,11 +296,11 @@ html, body { overflow-x: hidden; }
   height: 52px !important; min-height: 52px !important; box-sizing: border-box !important; align-items: center !important; }
 .stTextInput input { background: transparent !important; border: none !important; height: 50px !important;
   padding: 0 16px !important; font-size: 1rem !important; color: #1c2530 !important; }
-/* Progress + Next — tan track (not white) so it reads distinct from the cards */
-.stProgress [role="progressbar"] { background-color: #ded8c9 !important; }
+/* Progress + Next — warm gray track (not white) so it reads distinct from the cards */
+.stProgress [role="progressbar"] { background-color: #cdc7b8 !important; }
 .stProgress [role="progressbar"] > div { background-color: #1c2530 !important; }
-.stProgress > div > div { background-color: #ded8c9 !important; }
-.stProgress > div > div > div > div { background-color: #1c2530 !important; }
+/* Vertically center the progress bar with the Next button */
+[data-testid="stHorizontalBlock"] { align-items: center !important; }
 .stButton button { background: #1c2530 !important; color: #fff !important; border: none !important;
   border-radius: 12px !important; padding: 12px 26px !important; font-weight: 600 !important; }
 .stButton button:disabled { background: #b7bcc2 !important; color: #fff !important; }
