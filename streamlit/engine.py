@@ -31,6 +31,7 @@ SKILL_LABELS = {
     "proportional_reasoning": "Proportional Reasoning",
     "geometry": "Geometry",
     "statistics": "Statistics",
+    "logic": "Logic & Reasoning",
 }
 
 SKILL_PREREQS = {
@@ -93,6 +94,21 @@ QUESTION_BANK = [
     {"id": "EXP8-01", "grade": 8, "skill": "exponents", "difficulty": 0.90, "prereq": ["multiplication"], "misconception": "exponent_as_multiplication", "template": "exponent_eval"},
     {"id": "GEO8-01", "grade": 8, "skill": "geometry", "difficulty": 0.94, "prereq": ["number_sense"], "misconception": "pythagorean", "template": "pythagorean"},
     {"id": "PROP8-01", "grade": 8, "skill": "proportional_reasoning", "difficulty": 0.90, "prereq": ["proportional_reasoning"], "misconception": "proportional_scaling", "template": "proportional_speed"},
+    # Logic & creative reasoning (spans grades; no arithmetic prerequisite)
+    {"id": "LOG2-01", "grade": 2, "skill": "logic", "difficulty": 0.16, "prereq": [], "misconception": None, "template": "logic_block_tower"},
+    {"id": "LOG3-01", "grade": 3, "skill": "logic", "difficulty": 0.30, "prereq": [], "misconception": None, "template": "logic_notch"},
+    {"id": "LOG3-02", "grade": 3, "skill": "logic", "difficulty": 0.34, "prereq": [], "misconception": None, "template": "logic_block_tower"},
+    {"id": "LOG4-01", "grade": 4, "skill": "logic", "difficulty": 0.44, "prereq": [], "misconception": None, "template": "logic_toothpicks"},
+    {"id": "LOG4-02", "grade": 4, "skill": "logic", "difficulty": 0.48, "prereq": [], "misconception": None, "template": "logic_connections"},
+    {"id": "LOG5-01", "grade": 5, "skill": "logic", "difficulty": 0.58, "prereq": [], "misconception": None, "template": "logic_pattern_next"},
+    {"id": "LOG5-02", "grade": 5, "skill": "logic", "difficulty": 0.62, "prereq": [], "misconception": None, "template": "logic_toothpicks"},
+    {"id": "LOG6-01", "grade": 6, "skill": "logic", "difficulty": 0.70, "prereq": [], "misconception": None, "template": "logic_connections"},
+    {"id": "LOG6-02", "grade": 6, "skill": "logic", "difficulty": 0.74, "prereq": [], "misconception": None, "template": "logic_squares_all_sizes"},
+    {"id": "LOG6-03", "grade": 6, "skill": "logic", "difficulty": 0.72, "prereq": [], "misconception": None, "template": "logic_glasses"},
+    {"id": "LOG7-01", "grade": 7, "skill": "logic", "difficulty": 0.84, "prereq": [], "misconception": None, "template": "logic_pattern_next"},
+    {"id": "LOG7-02", "grade": 7, "skill": "logic", "difficulty": 0.86, "prereq": [], "misconception": None, "template": "logic_squares_all_sizes"},
+    {"id": "LOG8-01", "grade": 8, "skill": "logic", "difficulty": 0.92, "prereq": [], "misconception": None, "template": "logic_connections"},
+    {"id": "LOG8-02", "grade": 8, "skill": "logic", "difficulty": 0.90, "prereq": [], "misconception": None, "template": "logic_glasses"},
 ]
 
 QUESTION_BY_ID = {q["id"]: q for q in QUESTION_BANK}
@@ -207,6 +223,20 @@ ERROR_NOTES = {
     "variables_both_sides": {"type": "conceptual", "note": "didn't gather the variable terms onto one side"},
     "fraction_size": {"type": "conceptual", "note": "misjudged the size of the fraction"},
     "fraction_comparison": {"type": "conceptual", "note": "compared the two fractions incorrectly"},
+    # Logic & creative reasoning
+    "forgot_halving": {"type": "conceptual", "note": "counted every connection twice (didn't halve)"},
+    "counted_per_point": {"type": "conceptual", "note": "counted one line per point instead of per pair"},
+    "counted_each_square_separately": {"type": "conceptual", "note": "counted every square on its own, ignoring shared sides"},
+    "linear_off_by_one": {"type": "procedural", "note": "an off-by-one in the pattern's position"},
+    "ignored_start": {"type": "conceptual", "note": "left out the starting amount in the pattern"},
+    "counted_unit_only": {"type": "conceptual", "note": "counted only the smallest squares, not the larger ones"},
+    "counted_square_instead": {"type": "conceptual", "note": "used rows × rows instead of adding each row"},
+    "doubled_bottom": {"type": "procedural", "note": "doubled the bottom row instead of adding every row"},
+    "forgot_two_pieces": {"type": "conceptual", "note": "didn't split the leftover between the two pieces"},
+    "used_whole_width": {"type": "conceptual", "note": "used the whole width instead of the leftover"},
+    "reasoning_swap": {"type": "conceptual", "note": "swapping two glasses doesn't change which are full"},
+    "reasoning_ends": {"type": "conceptual", "note": "moving an end glass can't make the row alternate"},
+    "reasoning_impossible": {"type": "conceptual", "note": "it can be done — pour one glass into another"},
 }
 
 
@@ -515,6 +545,196 @@ def _stats_mean(rng, d):
     return {"prompt": f"What is the mean of {', '.join(str(n) for n in nums)}?", **q}
 
 
+# ---------------------------------------------------------------------------
+# Inline SVG figures — deterministic diagrams drawn from the same parameters.
+# Themed to the app ink so they read on the periwinkle background.
+# ---------------------------------------------------------------------------
+_FIG_INK = "#2f3729"
+_FIG_TINT = "#cfe0c2"
+
+
+def _svg(w, h, body):
+    return (f'<svg viewBox="0 0 {w} {h}" width="100%" style="max-width:{int(w)}px" '
+            f'xmlns="http://www.w3.org/2000/svg" fill="none" stroke="{_FIG_INK}" '
+            f'stroke-width="2" stroke-linejoin="round">{body}</svg>')
+
+
+def _txt(x, y, s, size=12):
+    return (f'<text x="{x}" y="{y}" fill="{_FIG_INK}" stroke="none" font-size="{size}" '
+            f'text-anchor="middle" font-family="Inter, system-ui, sans-serif">{s}</text>')
+
+
+def _fig_block_tower(h):
+    c = 26
+    cells = [f'<rect x="{i*c+1}" y="{(r-1)*c+1}" width="{c-2}" height="{c-2}" fill="{_FIG_TINT}"/>'
+             for r in range(1, h + 1) for i in range(r)]
+    return _svg(h * c + 2, h * c + 2, "".join(cells))
+
+
+def _fig_toothpicks(n):
+    c = 30
+    w = n * c
+    body = [f'<rect x="1" y="1" width="{w-2}" height="{c-2}" fill="{_FIG_TINT}"/>']
+    body += [f'<line x1="{i*c}" y1="1" x2="{i*c}" y2="{c-1}"/>' for i in range(1, n)]
+    return _svg(w + 2, c + 2, "".join(body))
+
+
+def _fig_points(n):
+    size, r = 150, 58
+    cx = cy = size / 2
+    dots = []
+    for k in range(n):
+        ang = -math.pi / 2 + 2 * math.pi * k / n
+        dots.append(f'<circle cx="{cx + r*math.cos(ang):.1f}" cy="{cy + r*math.sin(ang):.1f}" '
+                    f'r="6" fill="{_FIG_INK}" stroke="none"/>')
+    return _svg(size, size, "".join(dots))
+
+
+def _fig_grid(n):
+    c = 34
+    w = n * c
+    body = [f'<rect x="1" y="1" width="{w-2}" height="{w-2}"/>']
+    for i in range(1, n):
+        body.append(f'<line x1="{i*c}" y1="0" x2="{i*c}" y2="{w}"/>')
+        body.append(f'<line x1="0" y1="{i*c}" x2="{w}" y2="{i*c}"/>')
+    return _svg(w + 2, w + 2, "".join(body))
+
+
+def _fig_pattern(a, b):
+    c, per, gap = 16, 5, 24
+    body, x0, maxrows = [], 0, 1
+    for f in range(3):
+        count = a + f * b
+        for i in range(count):
+            body.append(f'<rect x="{x0+(i%per)*c+1}" y="{(i//per)*c+1}" width="{c-2}" '
+                        f'height="{c-2}" fill="{_FIG_TINT}"/>')
+        rows = (count + per - 1) // per
+        maxrows = max(maxrows, rows)
+        gw = min(count, per) * c
+        body.append(_txt(x0 + gw / 2, rows * c + 15, f"Fig {f+1}"))
+        x0 += gw + gap
+    body.append(_txt(x0 + 8, c, "&#8230;", 20))
+    return _svg(x0 + 24, maxrows * c + 22, "".join(body))
+
+
+def _fig_notch(w_units, m_units, piece):
+    s, h = 16, 38
+    pw, gw, total = piece * s, m_units * s, w_units * s
+    body = [
+        f'<rect x="1" y="1" width="{pw-1}" height="{h-2}" fill="{_FIG_TINT}"/>',
+        f'<rect x="{pw+gw+1}" y="1" width="{pw-1}" height="{h-2}" fill="{_FIG_TINT}"/>',
+        _txt(pw + gw / 2, h / 2 + 4, m_units),
+        _txt(pw / 2, h + 16, "?", 14),
+    ]
+    return _svg(total + 2, h + 22, "".join(body))
+
+
+def _fig_glasses():
+    cw, ch, gap = 32, 44, 16
+    body = []
+    for i in range(6):
+        x = i * (cw + gap)
+        body.append(f'<polygon points="{x},2 {x+cw},2 {x+cw-6},{ch} {x+6},{ch}" '
+                    f'fill="{_FIG_INK if i < 3 else "none"}"/>')
+        body.append(_txt(x + cw / 2, ch + 16, i + 1))
+    return _svg(6 * cw + 5 * gap, ch + 22, "".join(body))
+
+
+# ---------------------------------------------------------------------------
+# Logic & creative reasoning — parameterized puzzles with deterministic answers.
+# ---------------------------------------------------------------------------
+def _logic_block_tower(rng, d):
+    h = rand_int(rng, 3, 4) if d < 0.35 else rand_int(rng, 4, 5) if d < 0.55 else rand_int(rng, 5, 7)
+    ans = h * (h + 1) // 2
+    q = mcq(rng, ans, [
+        {"v": h * h, "error": "counted_square_instead"},
+        {"v": 2 * h, "error": "doubled_bottom"},
+        {"v": ans - h, "error": "computation_slip"},
+        {"v": ans + 1, "error": "off_by_one"},
+    ])
+    return {"prompt": f"A tower is built like a staircase: the top row has 1 block, the next row has 2, "
+                      f"and so on down to a bottom row of {h} blocks. How many blocks are used in all?", "figure": _fig_block_tower(h), **q}
+
+
+def _logic_notch(rng, d):
+    m = rand_int(rng, 2, 4)
+    piece = rand_int(rng, 2, 5) if d < 0.4 else rand_int(rng, 4, 9)
+    w = m + 2 * piece
+    q = mcq(rng, piece, [
+        {"v": w - m, "error": "forgot_two_pieces"},
+        {"v": w, "error": "used_whole_width"},
+        {"v": piece + 1, "error": "off_by_one"},
+        {"v": piece - 1, "error": "off_by_one"},
+    ])
+    return {"prompt": f"A shelf is {w} units wide. A gap {m} units wide is cut out of the exact middle, "
+                      f"leaving two equal pieces — one on the left and one on the right. How wide is each piece?", "figure": _fig_notch(w, m, piece), **q}
+
+
+def _logic_toothpicks(rng, d):
+    n = rand_int(rng, 3, 5) if d < 0.55 else rand_int(rng, 6, 9)
+    ans = 3 * n + 1
+    q = mcq(rng, ans, [
+        {"v": 4 * n, "error": "counted_each_square_separately"},
+        {"v": 3 * n, "error": "off_by_one"},
+        {"v": 3 * n + 2, "error": "off_by_one"},
+    ])
+    return {"prompt": f"A row of {n} squares is built from toothpicks, where two side-by-side squares "
+                      f"share one toothpick. How many toothpicks are used in all?", "figure": _fig_toothpicks(n), **q}
+
+
+def _logic_connections(rng, d):
+    n = rand_int(rng, 4, 5) if d < 0.6 else rand_int(rng, 5, 6) if d < 0.82 else rand_int(rng, 6, 8)
+    ans = n * (n - 1) // 2
+    q = mcq(rng, ans, [
+        {"v": n * (n - 1), "error": "forgot_halving"},
+        {"v": n, "error": "counted_per_point"},
+        {"v": n - 1, "error": "counted_per_point"},
+        {"v": ans + 1, "error": "off_by_one"},
+    ])
+    return {"prompt": f"How many straight lines are needed to connect {n} points to each other, "
+                      f"if no three of the points lie on one straight line?", "figure": _fig_points(n), **q}
+
+
+def _logic_pattern_next(rng, d):
+    a = rand_int(rng, 2, 5)
+    b = rand_int(rng, 2, 4)
+    n = rand_int(rng, 6, 9) if d < 0.7 else rand_int(rng, 10, 16)
+    ans = a + (n - 1) * b
+    q = mcq(rng, ans, [
+        {"v": a + n * b, "error": "linear_off_by_one"},
+        {"v": a + (n - 2) * b, "error": "linear_off_by_one"},
+        {"v": n * b, "error": "ignored_start"},
+        {"v": ans + 1, "error": "off_by_one"},
+    ])
+    return {"prompt": f"In a growing pattern, Figure 1 has {a} squares and each figure has {b} more "
+                      f"squares than the one before. How many squares are in Figure {n}?", "figure": _fig_pattern(a, b), **q}
+
+
+def _logic_squares_all_sizes(rng, d):
+    n = 3 if d < 0.72 else 4 if d < 0.9 else rand_int(rng, 4, 5)
+    ans = n * (n + 1) * (2 * n + 1) // 6
+    q = mcq(rng, ans, [
+        {"v": n * n, "error": "counted_unit_only"},
+        {"v": n * n + 1, "error": "counted_unit_only"},
+        {"v": ans - 1, "error": "off_by_one"},
+        {"v": ans + n, "error": "computation_slip"},
+    ])
+    return {"prompt": f"How many squares of every size (not just the small ones) can be found on a "
+                      f"{n}×{n} grid of squares?", "figure": _fig_grid(n), **q}
+
+
+def _logic_glasses(rng, d):
+    correct = "Pour glass 2 into glass 5"
+    q = mcq(rng, correct, [
+        {"v": "Swap glass 3 and glass 4", "error": "reasoning_swap"},
+        {"v": "Pour glass 1 into glass 6", "error": "reasoning_ends"},
+        {"v": "It can't be done by moving one glass", "error": "reasoning_impossible"},
+    ])
+    return {"prompt": "Six glasses sit in a row: glasses 1, 2 and 3 are full; glasses 4, 5 and 6 are empty. "
+                      "By pouring just ONE glass into another, make the row alternate full, empty, full, "
+                      "empty, full, empty. Which single move works?", "figure": _fig_glasses(), **q}
+
+
 TEMPLATES = {
     "number_compare_greatest": _number_compare_greatest,
     "addition_basic": _addition_basic,
@@ -539,6 +759,13 @@ TEMPLATES = {
     "equation_solve_sa": _equation_solve_sa,
     "geometry_area": _geometry_area,
     "stats_mean": _stats_mean,
+    "logic_block_tower": _logic_block_tower,
+    "logic_notch": _logic_notch,
+    "logic_toothpicks": _logic_toothpicks,
+    "logic_connections": _logic_connections,
+    "logic_pattern_next": _logic_pattern_next,
+    "logic_squares_all_sizes": _logic_squares_all_sizes,
+    "logic_glasses": _logic_glasses,
 }
 
 
@@ -597,6 +824,8 @@ def materialize(state, blueprint):
         "misconception": blueprint.get("misconception"),
         "type": gen.get("type", "multiple_choice"),
         "prompt": gen["prompt"],
+        "figure": gen.get("figure"),          # inline SVG diagram (optional)
+        "image": gen.get("image") or blueprint.get("image"),  # asset path under assets/questions/ (optional)
         "choices": gen.get("choices"),
         "answer": gen["answer"],
         "diagnostics": gen.get("diagnostics", {}),

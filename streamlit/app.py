@@ -9,11 +9,14 @@ Run locally:   streamlit run streamlit/app.py
 """
 
 import base64
+import mimetypes
 from datetime import date
 from pathlib import Path
 
 import streamlit as st
 import engine
+
+QUESTION_ASSET_DIR = (Path(__file__).parent / "assets" / "questions").resolve()
 
 st.set_page_config(page_title="Beyond the Grade", page_icon="📘", layout="centered")
 
@@ -44,19 +47,53 @@ def report_data_uri():
     """Report snapshot photo."""
     return _asset_uri("report.webp")
 
+
+@st.cache_data
+def _file_data_uri(path_str, mtime):
+    """Data URI for an arbitrary image file (png/jpg/webp/svg…), mtime-keyed."""
+    p = Path(path_str)
+    mime = mimetypes.guess_type(p.name)[0] or "application/octet-stream"
+    data = base64.b64encode(p.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{data}"
+
+
+def question_image_uri(rel):
+    """Embed an image a question points at (path relative to assets/questions/).
+
+    Returns a data URI, or None if the file is missing / escapes the asset dir.
+    """
+    if not rel:
+        return None
+    p = (QUESTION_ASSET_DIR / rel).resolve()
+    if QUESTION_ASSET_DIR != p and QUESTION_ASSET_DIR not in p.parents:
+        return None  # path-traversal guard
+    if not p.is_file():
+        return None
+    return _file_data_uri(str(p), p.stat().st_mtime)
+
+
+def question_figure_html(q):
+    """Figure markup for a question: inline SVG diagram, else an image asset."""
+    if q.get("figure"):
+        return f'<div class="qfigure">{q["figure"]}</div>'
+    uri = question_image_uri(q.get("image"))
+    if uri:
+        return f'<div class="qfigure"><img src="{uri}" alt=""></div>'
+    return ""
+
 # Light brand styling.
 st.markdown(
     """
     <style>
       .stApp { background: #cdd5e8; }
-      .badge { display:inline-block; padding:4px 12px; border-radius:999px; font-size:.8rem; font-weight:700; }
+      .badge { display:inline-block; padding:4px 12px; border-radius:999px; font-size:.8rem; font-weight:600; }
       .b-proc { background:#f3e6c4; color:#8a6a1e; }
       .b-cog  { background:#f2d9d2; color:#a5493a; }
       .b-on   { background:#e2efdd; color:#547a45; }
       .b-slightly { background:#f6ecd2; color:#a07d24; }
       .b-below { background:#f6e2dd; color:#b45f4f; }
       .b-ahead { background:#e0e9f2; color:#4f759c; }
-      .chip { display:inline-block; background:#cdd5e8; color:#2f3729; padding:4px 12px; border-radius:999px; font-size:.8rem; font-weight:600; }
+      .chip { display:inline-block; background:#cdd5e8; color:#2f3729; padding:4px 12px; border-radius:999px; font-size:.8rem; font-weight:500; }
       .qwhy { color:#2f3729; font-style:italic; }
     </style>
     """,
@@ -68,6 +105,7 @@ ss.setdefault("phase", "landing")
 ss.setdefault("state", None)
 ss.setdefault("current_q", None)
 ss.setdefault("child", None)
+ss.setdefault("rtab", "overview")
 
 # CTA / nav links navigate via a query param.
 _go = st.query_params.get("go")
@@ -132,11 +170,12 @@ def reset():
     ss.state = None
     ss.current_q = None
     ss.child = None
+    ss.rtab = "overview"
 
 
 LANDING_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Mulish:wght@300;400;500;600;700;800&display=swap');
 html, body { overflow-x: hidden; }
 header[data-testid="stHeader"] { display: none; }
 .block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
@@ -147,11 +186,11 @@ header[data-testid="stHeader"] { display: none; }
 .nav { background: #cdd5e8; width: 100vw; margin: 0 calc(-50vw + 50%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
-.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
 .nav-links { display: flex; align-items: center; gap: 26px; }
 .nav-links a { color: #4f574f !important; text-decoration: none !important; font-size: .95rem; }
 .nav-links a:hover { color: #2f3729 !important; }
-.nav-links a.nav-cta { background: #2f3729; color: #fff !important; text-decoration: none !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+.nav-links a.nav-cta { background: #2f3729; color: #fff !important; text-decoration: none !important; padding: 9px 18px; border-radius: 10px; font-weight: 500; }
 .nav-links a.nav-cta:hover { color: #fff !important; }
 @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
 .bg-hero {
@@ -162,51 +201,51 @@ header[data-testid="stHeader"] { display: none; }
 .hero-inner { width: 100%; padding-left: max(2rem, calc((100vw - 1280px) / 2 + 2rem)); padding-right: 2rem; }
 .hero-text { max-width: 620px; padding: 56px 0; }
 .hero-inner .eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
-  font-weight: 700; color: #2f3729; margin: 0 0 18px; }
-.hero-inner h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #141414;
+  font-weight: 600; color: #2f3729; margin: 0 0 18px; }
+.hero-inner h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 300; color: #2f3729;
   font-size: clamp(2.6rem, 5.2vw, 4.25rem) !important; line-height: 1.02; margin: 0 0 26px; }
 .hero-inner .lede { color: #4f574f; font-size: 1.14rem; max-width: 44ch; margin: 0 0 30px; }
 .hero-inner .meta { color: #7c817b; font-size: .95rem; margin: 18px 0 0; }
 a.cta { display: inline-block; background: #2f3729; color: #fff !important; padding: 14px 24px;
-  border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 1rem; }
+  border-radius: 12px; text-decoration: none; font-weight: 500; font-size: 1rem; }
 a.cta:hover { background: #232a1f; }
 .section-eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: .78rem;
-  font-weight: 700; color: #2f3729; text-align: center; margin: 0 0 22px; }
+  font-weight: 600; color: #2f3729; text-align: center; margin: 0 0 22px; }
 /* Features — white full-width band, icons to the left of the text */
 .feat-band { background: #fff; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 46px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
 .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
 .feat { display: flex; align-items: flex-start; gap: 14px; text-align: left; }
 .fic { color: #2f3729; flex: 0 0 auto; display: inline-flex; margin-top: 1px; }
-.ft-title { font-family: 'Inter', sans-serif; font-size: 1.08rem !important; font-weight: 700;
+.ft-title { font-family: 'Mulish', sans-serif; font-size: 1.08rem !important; font-weight: 600;
   color: #2f3729; margin: 0 0 5px !important; line-height: 1.3; }
 .ft-sub { color: #4f574f; font-size: .98rem !important; margin: 0 !important; line-height: 1.45; }
 /* How it works — full-width cream band */
 .hw-band { background: #e3e9f5; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 72px max(2rem, calc((100vw - 1280px) / 2 + 2rem)) 90px; text-align: center; }
-.hw-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #141414;
+.hw-title { font-family: 'Fraunces', Georgia, serif; font-weight: 300; color: #2f3729;
   font-size: clamp(2.2rem, 5vw, 3.4rem) !important; line-height: 1.08; text-align: center !important; margin: 0 0 16px; }
 .hw-sub { display: inline-block !important; color: #4f574f; text-align: center !important;
   max-width: 62ch; font-size: 1.12rem !important; margin: 0 auto; }
 /* Signals — white full-width band */
 .sig-band { background: #fff; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 72px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
-.sig-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: #141414;
+.sig-title { font-family: 'Fraunces', Georgia, serif; font-weight: 300; color: #2f3729;
   font-size: clamp(2.1rem, 4.6vw, 3.3rem) !important; line-height: 1.1; margin: 0 0 8px; }
 .sig-title em { color: #2f3729; font-style: italic; }
 .sig-sub { color: #4f574f; font-size: 1.1rem !important; margin: 0 0 26px; }
 .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .sig-card { background: #fff; border: 1px solid #c7cee1; border-radius: 16px; padding: 26px; }
 .sig-num { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
-  background: #2f3729; color: #fff; font-weight: 700; font-size: 1.05rem; margin-bottom: 20px; }
-.sig-card h4 { font-family: 'Inter', sans-serif; font-size: 1.18rem; color: #2f3729; margin: 0 0 12px; line-height: 1.25; }
+  background: #2f3729; color: #fff; font-weight: 600; font-size: 1.05rem; margin-bottom: 20px; }
+.sig-card h4 { font-family: 'Mulish', sans-serif; font-size: 1.18rem; color: #2f3729; margin: 0 0 12px; line-height: 1.25; }
 .sig-card p { color: #4f574f; font-size: .98rem; margin: 0; line-height: 1.55; }
 .foot { background: #2f3729; border-radius: 0; width: 100vw; margin: 0 calc(-50vw + 50%);
   padding: 64px max(2rem, calc((100vw - 1280px) / 2 + 2rem)) 72px;
   display: grid; grid-template-columns: 1.1fr 1fr; gap: 60px; }
-.foot .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.5rem; color: #eef1e9; margin: 0 0 14px; }
+.foot .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 1.5rem; color: #eef1e9; margin: 0 0 14px; }
 .foot p { color: #dbe0d3; margin: 0; font-size: 1.02rem; }
-.foot .note-title { font-weight: 700; margin: 0 0 8px; }
+.foot .note-title { font-weight: 600; margin: 0 0 8px; }
 .foot .note { color: #aab0a2; }
 @media (max-width: 640px) {
   .feat-grid, .sig-grid, .foot { grid-template-columns: 1fr; }
@@ -218,36 +257,36 @@ a.cta:hover { background: #232a1f; }
 
 INTAKE_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Mulish:wght@300;400;500;600;700;800&display=swap');
 header[data-testid="stHeader"] { display: none; }
 .block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
   max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 3rem !important; }
 [data-testid="stVerticalBlock"] { gap: 0 !important; }
 html, body { overflow-x: hidden; }
-.stApp, .stApp p, .stApp label, .stApp input, .stApp button, .stApp div { font-family: 'Inter', system-ui, sans-serif; }
+.stApp, .stApp p, .stApp label, .stApp input, .stApp button, .stApp div { font-family: 'Mulish', system-ui, sans-serif; }
 /* Top nav */
 .nav { background: #cdd5e8; width: 100vw; margin: 0 calc(-50vw + 50%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
-.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
 .nav-links { display: flex; align-items: center; gap: 26px; }
 .nav-links a { color: #4f574f !important; text-decoration: none !important; font-size: .95rem; }
 .nav-links a:hover { color: #2f3729 !important; }
-.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 500; }
 /* Stepper */
 .stepper { display: flex; align-items: center; gap: 12px; margin: 40px 0 34px; }
 .step { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: #7c817b; white-space: nowrap; }
-.step.active { color: #2f3729; font-weight: 600; }
+.step.active { color: #2f3729; font-weight: 500; }
 .step .dot { width: 12px; height: 12px; border-radius: 50%; background: #b3bcd6; }
 .step.active .dot { background: #2f3729; }
 .stepline { flex: 1; height: 3px; background: #bcc4dc; border-radius: 3px; min-width: 24px; }
 /* Heading */
-h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #141414;
+h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 300; color: #2f3729;
   font-size: clamp(2.2rem, 4.4vw, 3.1rem) !important; line-height: 1.05; margin: 0 0 12px; padding: 0; }
 .intake-sub { color: #4f574f; font-size: 1.06rem; margin: 0 0 30px; }
 /* Form fields */
 .stTextInput, .stSelectbox, .stNumberInput { margin-bottom: 22px !important; }
-[data-testid="stWidgetLabel"] p { font-weight: 600 !important; color: #2f3729 !important; font-size: .95rem !important; }
+[data-testid="stWidgetLabel"] p { font-weight: 500 !important; color: #2f3729 !important; font-size: .95rem !important; }
 /* Uniform 52px control boxes: border/height on the BaseWeb container for all three */
 .stTextInput div[data-baseweb="input"],
 .stNumberInput div[data-baseweb="input"],
@@ -262,7 +301,7 @@ h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 
 /* Next button */
 .stFormSubmitButton button {
   background: #2f3729 !important; color: #fff !important; border: none !important; border-radius: 12px !important;
-  width: 100% !important; padding: 14px 0 !important; font-weight: 600 !important; margin-top: 4px; }
+  width: 100% !important; padding: 14px 0 !important; font-weight: 500 !important; margin-top: 4px; }
 .stFormSubmitButton button:hover { background: #232a1f !important; }
 .stFormSubmitButton button p { font-size: 1.02rem !important; }
 [data-testid="stForm"] { border: none !important; padding: 0 !important; }
@@ -272,35 +311,39 @@ h1.intake-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 
 
 ASSESSMENT_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Mulish:wght@300;400;500;600;700;800&display=swap');
 header[data-testid="stHeader"] { display: none; }
 .block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
   max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 3rem !important; }
 [data-testid="stVerticalBlock"] { gap: 0 !important; }
 html, body { overflow-x: hidden; }
-.stApp, .stApp p, .stApp label, .stApp input, .stApp button, .stApp div { font-family: 'Inter', system-ui, sans-serif; }
+.stApp, .stApp p, .stApp label, .stApp input, .stApp button, .stApp div { font-family: 'Mulish', system-ui, sans-serif; }
 /* Top nav */
 .nav { background: #cdd5e8; width: 100vw; margin: 0 calc(-50vw + 50%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
-.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
 .nav-links { display: flex; align-items: center; gap: 26px; }
 .nav-links a { color: #4f574f !important; text-decoration: none !important; font-size: .95rem; }
 .nav-links a:hover { color: #2f3729 !important; }
-.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 500; }
 /* Stepper */
 .stepper { display: flex; align-items: center; gap: 12px; margin: 40px 0 34px; }
 .step { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: #7c817b; white-space: nowrap; }
-.step.active { color: #2f3729; font-weight: 600; }
+.step.active { color: #2f3729; font-weight: 500; }
 .step .dot { width: 12px; height: 12px; border-radius: 50%; background: #b3bcd6; }
 .stepline { flex: 1; height: 3px; background: #bcc4dc; border-radius: 3px; min-width: 24px; }
 .stepline.done { background: #2f3729; }
 /* Question head */
 .qhead { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
-.qchip { background: #fff; color: #2f3729; font-weight: 600; font-size: .9rem; padding: 8px 18px; border-radius: 999px; }
+.qchip { background: #fff; color: #2f3729; font-weight: 500; font-size: .9rem; padding: 8px 18px; border-radius: 999px; }
 .qnum { color: #7c817b; font-size: 1rem; }
-.qprompt { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #141414;
+.qprompt { font-family: 'Fraunces', Georgia, serif !important; font-weight: 300; color: #2f3729;
   font-size: clamp(1.8rem, 3.2vw, 2.4rem) !important; line-height: 1.15; margin: 0 0 24px; }
+/* Question figure (inline SVG diagram) — transparent, so it doesn't read as a choice */
+.qfigure { display: flex; justify-content: center; padding: 6px 0 22px; margin: 0; }
+.qfigure svg { display: block; height: auto; max-width: 320px; }
+.qfigure img { display: block; height: auto; max-width: 420px; width: 100%; border-radius: 12px; }
 /* Choices as cards */
 .stRadio [role="radiogroup"] { display: flex; flex-direction: column; gap: 12px; }
 .stRadio [role="radiogroup"] > label {
@@ -322,7 +365,7 @@ html, body { overflow-x: hidden; }
 /* Vertically center the progress bar with the Next button */
 [data-testid="stHorizontalBlock"] { align-items: center !important; }
 .stButton button { background: #2f3729 !important; color: #fff !important; border: none !important;
-  border-radius: 12px !important; padding: 12px 26px !important; font-weight: 600 !important; }
+  border-radius: 12px !important; padding: 12px 26px !important; font-weight: 500 !important; }
 .stButton button:disabled { background: #b7bcc2 !important; color: #fff !important; }
 </style>
 """
@@ -330,34 +373,34 @@ html, body { overflow-x: hidden; }
 
 DONE_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600;700&family=Caveat:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Mulish:wght@300;400;500;600;700;800&family=Caveat:wght@600&display=swap');
 header[data-testid="stHeader"] { display: none; }
 .block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
   max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 3rem !important; }
 [data-testid="stVerticalBlock"] { gap: 0 !important; }
 html, body { overflow-x: hidden; }
-.stApp, .stApp p, .stApp label, .stApp div { font-family: 'Inter', system-ui, sans-serif; }
+.stApp, .stApp p, .stApp label, .stApp div { font-family: 'Mulish', system-ui, sans-serif; }
 /* Top nav */
 .nav { background: #cdd5e8; width: 100vw; margin: 0 calc(-50vw + 50%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
-.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
 .nav-links { display: flex; align-items: center; gap: 26px; }
 .nav-links a { color: #4f574f !important; text-decoration: none !important; font-size: .95rem; }
 .nav-links a:hover { color: #2f3729 !important; }
-.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 500; }
 /* Done page */
 .done-wrap { text-align: center; margin-top: 64px; }
 .check-badge { width: 96px; height: 96px; border-radius: 50%; background: #e3e9f5; border: 1px solid #c7cee1;
   display: flex; align-items: center; justify-content: center; font-size: 2.6rem; color: #2f3729; margin: 0 auto 30px; }
-h1.done-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #141414;
+h1.done-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 300; color: #2f3729;
   font-size: clamp(2.6rem, 5vw, 3.6rem) !important; margin: 0 0 16px; }
 .done-sub { color: #4f574f; font-size: 1.15rem; margin: 0 0 32px; text-align: center; }
 .done-note { font-family: 'Caveat', cursive; font-size: 1.6rem; color: #2f3729; text-align: center;
   transform: rotate(-3deg); margin-top: 40px; }
 .stButton { display: flex; justify-content: center; }
 .stButton button { background: #2f3729 !important; color: #fff !important; border: none !important;
-  border-radius: 12px !important; padding: 14px 30px !important; font-weight: 600 !important; font-size: 1.05rem !important; }
+  border-radius: 12px !important; padding: 14px 30px !important; font-weight: 500 !important; font-size: 1.05rem !important; }
 .stButton button:hover { background: #232a1f !important; }
 </style>
 """
@@ -365,22 +408,22 @@ h1.done-h1 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 60
 
 RESULTS_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,600&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Mulish:wght@300;400;500;600;700;800&display=swap');
 header[data-testid="stHeader"] { display: none; }
 .block-container, [data-testid="stMainBlockContainer"], .stMainBlockContainer {
   max-width: 1280px !important; padding-top: 0 !important; padding-bottom: 3rem !important; }
 [data-testid="stVerticalBlock"] { gap: 0 !important; }
 html, body { overflow-x: hidden; }
-.stApp, .stApp p, .stApp label, .stApp div { font-family: 'Inter', system-ui, sans-serif; }
+.stApp, .stApp p, .stApp label, .stApp div { font-family: 'Mulish', system-ui, sans-serif; }
 /* Top nav */
 .nav { background: #cdd5e8; width: 100vw; margin: 0 calc(-50vw + 50%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
-.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
+.nav .brand { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 1.35rem; color: #2f3729 !important; text-decoration: none !important; }
 .nav-links { display: flex; align-items: center; gap: 26px; }
 .nav-links a { color: #4f574f !important; text-decoration: none !important; font-size: .95rem; }
 .nav-links a:hover { color: #2f3729 !important; }
-.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 600; }
+.nav-links a.nav-cta { background: #2f3729; color: #fff !important; padding: 9px 18px; border-radius: 10px; font-weight: 500; }
 @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
 /* Editorial report — full-bleed hero like the landing page.
    Shares the nav gutter so the menu and content line up. */
@@ -390,40 +433,108 @@ html, body { overflow-x: hidden; }
 .rpt-hero-inner { width: 100%;
   padding: 80px max(2rem, calc((100vw - 1280px) / 2 + 2rem)); }
 .rpt-left { max-width: 560px; }
-.rpt-eyebrow { text-transform: uppercase; letter-spacing: .2em; font-size: .82rem; font-weight: 700;
+.rpt-eyebrow { text-transform: uppercase; letter-spacing: .2em; font-size: .82rem; font-weight: 600;
   color: #7c817b; margin: 0 0 22px !important; }
-.rpt-title { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #141414 !important;
+.rpt-title { font-family: 'Fraunces', Georgia, serif !important; font-weight: 300; color: #2f3729 !important;
   font-size: clamp(2.6rem, 4.6vw, 4rem) !important; line-height: 1.02; margin: 0 0 22px !important; padding: 0; }
 .rpt-meta { color: #7c817b; font-size: 1rem; margin: 0 0 34px !important; }
-.rpt-oh { color: #2f3729; font-weight: 600; font-size: 1.02rem; margin: 0 0 8px !important; }
-.rpt-band { font-family: 'Fraunces', Georgia, serif !important; font-weight: 600; color: #141414;
+.rpt-oh { color: #2f3729; font-weight: 500; font-size: 1.02rem; margin: 0 0 8px !important; }
+.rpt-band { font-family: 'Fraunces', Georgia, serif !important; font-weight: 300; color: #2f3729;
   font-size: clamp(2.1rem, 3.6vw, 3rem) !important; line-height: 1.05; margin: 0 0 26px !important; }
 .rpt-prog { height: 12px; background: #bcc4dc; border-radius: 8px; width: 100%; max-width: 680px; overflow: hidden; }
 .rpt-prog-fill { height: 100%; background: #2f3729; border-radius: 8px; }
 .rpt-summary { color: #4f574f; font-size: 1.12rem; line-height: 1.5; margin: 22px 0 30px !important; max-width: 46ch; }
 .rpt-pdf { display: inline-flex; align-items: center; gap: 10px; border: 1px solid #9aa6cc; border-radius: 12px;
-  padding: 12px 22px; color: #2f3729 !important; text-decoration: none !important; font-weight: 600; font-size: .95rem;
+  padding: 12px 22px; color: #2f3729 !important; text-decoration: none !important; font-weight: 500; font-size: .95rem;
   background: transparent; }
 .rpt-pdf:hover { background: rgba(255,255,255,.4); }
 .rpt-pdf svg { width: 18px; height: 18px; }
 /* Lower band — stats + closing line, aligned to the same nav gutter */
 .rpt-lower { width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);
   padding: 4px max(2rem, calc((100vw - 1280px) / 2 + 2rem)) 44px; }
-.rpt-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #b6bfda; }
+.rpt-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid #b6bfda; }
 .rpt-stat { padding: 28px 30px; border-left: 1px solid #b6bfda; }
 .rpt-stat:first-child { border-left: none; padding-left: 0; }
-.rpt-num { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 3rem; line-height: 1; margin-bottom: 14px; }
+.rpt-num { font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 3rem; line-height: 1; margin-bottom: 14px; }
 .n-green { color: #5f7346; } .n-gold { color: #bf9a34; } .n-red { color: #b2543f; } .n-blue { color: #5f7f9e; }
-.rpt-stat-t { font-weight: 700; color: #2f3729; font-size: 1.05rem; margin-bottom: 4px; }
+.rpt-stat-t { font-weight: 600; color: #2f3729; font-size: 1.05rem; margin-bottom: 4px; }
 .rpt-stat-s { color: #7c817b; font-size: .93rem; }
 .rpt-foot { display: flex; align-items: center; justify-content: space-between; gap: 24px;
   border-top: 1px solid #b6bfda; padding: 28px 0 0; }
 .rpt-quote { font-family: 'Fraunces', Georgia, serif; font-style: italic; color: #2f3729;
   font-size: 1.5rem; margin: 0 !important; }
 .rpt-tag { display: flex; align-items: center; gap: 16px; text-transform: uppercase; letter-spacing: .16em;
-  font-size: .74rem; font-weight: 700; color: #7c817b; text-align: right; line-height: 1.55; }
+  font-size: .74rem; font-weight: 600; color: #7c817b; text-align: right; line-height: 1.55; }
 .rpt-tag .tag-line { width: 60px; height: 1px; background: #9aa6cc; flex: 0 0 auto; }
+/* --- Report lower section: native tabs + tabbed content (all full-bleed, shared gutter) --- */
+.rlower { width: 100vw; margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%);
+  padding: 34px max(2rem, calc((100vw - 1280px) / 2 + 2rem)) 8px; }
+/* Native st.tabs: full-width white band, labels aligned to the content gutter, double height */
+[data-testid="stTabs"] [role="tablist"] {
+  width: 100vw; margin-left: calc(-50vw + 50%);
+  background: #2f3729; border: none;
+  padding: 0 max(2rem, calc((100vw - 1280px) / 2 + 2rem)); gap: 42px; }
+[data-testid="stTabs"] [role="tab"] { padding: 34px 2px !important; }
+[data-testid="stTabs"] [role="tab"] p { font-size: 1.22rem !important; color: rgba(227, 233, 245, .7) !important; }
+[data-testid="stTabs"] [role="tab"] [data-testid="stIconMaterial"] {
+  font-size: 1.5rem !important; width: 1.5rem !important; height: 1.5rem !important; color: rgba(227, 233, 245, .6) !important; }
+[data-testid="stTabs"] [role="tab"][aria-selected="true"] p { color: #e3e9f5 !important; font-weight: 600 !important; }
+[data-testid="stTabs"] [role="tab"][aria-selected="true"] [data-testid="stIconMaterial"] { color: #e3e9f5 !important; }
+[data-testid="stTabs"] [data-baseweb="tab-highlight"] { background-color: #e3e9f5 !important; height: 3px !important; }
+[data-testid="stTabs"] [data-baseweb="tab-border"] { background-color: transparent !important; }
+/* Overview: two columns */
+.ov { display: grid; grid-template-columns: 1.75fr 1fr; gap: 64px; padding: 44px 0 8px; }
+.ov h3 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 300; color: #2f3729;
+  font-size: clamp(1.8rem, 2.8vw, 2.4rem) !important; line-height: 1.1; margin: 0 0 18px !important; }
+.ov h4 { font-family: 'Fraunces', Georgia, serif !important; font-weight: 300; color: #2f3729;
+  font-size: 1.55rem !important; margin: 0 0 16px !important; }
+.ov p { color: #4f574f; font-size: 1.12rem; line-height: 1.55; margin: 0 !important; max-width: 58ch; }
+.ov-div { height: 1px; background: #c7cee1; margin: 30px 0; }
+.ov-badges { display: flex; gap: 12px; margin: 0 0 12px; flex-wrap: wrap; }
+.ov-cap { color: #7c817b !important; font-size: 1rem !important; margin: 0 0 26px !important; }
+.ov-pdf { margin-top: 4px; }
+.ov-tagline { text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 600;
+  color: #7c817b; text-align: right; line-height: 1.6; margin: 6px 0 30px; }
+.ov-tagline .tl-line { display: block; width: 56px; height: 1px; background: #9aa6cc; margin: 0 0 14px auto; }
+.ov-closer-p { font-size: 1.02rem !important; margin: 0 0 20px !important; }
+.ov-nav { display: flex; flex-direction: column; }
+.ov-nav-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 2px;
+  border-top: 1px solid #c7cee1; color: #2f3729; font-size: 1.05rem; }
+.ov-nav-item:last-child { border-bottom: 1px solid #c7cee1; }
+.ov-nav .arw { font-size: 1.15rem; color: #9aa6cc; }
+/* Skill details rows */
+.sk { padding: 40px 0 8px; }
+.sk-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 40px; align-items: center;
+  padding: 18px 0; border-top: 1px solid #c7cee1; }
+.sk-row:first-child { border-top: none; }
+.sk-label { font-weight: 600; color: #2f3729; margin-bottom: 10px; }
+.sk-bar { height: 10px; background: #bcc4dc; border-radius: 6px; overflow: hidden; max-width: 520px; }
+.sk-fill { height: 100%; background: #2f3729; border-radius: 6px; }
+.sk-right { text-align: right; color: #4f574f; font-size: .98rem; }
+/* Questions list */
+.qz { padding: 34px 0 8px; }
+.qz-intro { color: #7c817b; margin: 0 0 18px; }
+.qz-row { padding: 18px 0; border-top: 1px solid #c7cee1; }
+.qz-row:first-child { border-top: none; }
+.qz-prompt { color: #2f3729; font-weight: 500; font-size: 1.06rem; margin-bottom: 4px; }
+.qz-fig { max-width: 250px; margin: 8px 0 10px; }
+.qz-meta { color: #7c817b; font-size: .95rem; margin-bottom: 6px; }
+.qz-mark { margin-right: 8px; }
+/* Next steps */
+.nx { padding: 42px 0 8px; max-width: 760px; }
+.nx-item { display: flex; gap: 18px; padding: 18px 0; border-top: 1px solid #c7cee1; }
+.nx-item:first-child { border-top: none; }
+.nx-num { font-family: 'Fraunces', Georgia, serif; color: #9aa6cc; font-size: 1.35rem; font-weight: 500;
+  line-height: 1.35; flex: 0 0 auto; }
+.nx-text { color: #4f574f; font-size: 1.08rem; line-height: 1.5; }
 @media (max-width: 820px) {
+  .rlower { padding: 22px max(1.25rem, calc((100vw - 1280px) / 2 + 1.25rem)) 8px; }
+  .rtabs { gap: 20px; overflow-x: auto; }
+  .ov { grid-template-columns: 1fr; gap: 30px; }
+  .ov-tagline { text-align: left; }
+  .ov-tagline .tl-line { margin: 0 0 14px 0; }
+  .sk-row { grid-template-columns: 1fr; gap: 8px; }
+  .sk-right { text-align: left; }
   .rpt-hero { min-height: 440px; background-position: 72% center; }
   .rpt-hero-inner { padding: 44px max(1.25rem, calc((100vw - 1280px) / 2 + 1.25rem)); }
   .rpt-left { max-width: 100%; }
@@ -580,10 +691,12 @@ elif ss.phase == "assessment":
     _, col, _ = st.columns([1, 3.4, 1])
     with col:
         st.markdown(build_stepper(2), unsafe_allow_html=True)
+        figure_html = question_figure_html(q)
         st.markdown(
             f'<div class="qhead"><span class="qchip">{engine.SKILL_LABELS.get(q["skill"], q["skill"])}</span>'
             f'<span class="qnum">Question {current_num}</span></div>'
-            f'<div class="qprompt">{q["prompt"]}</div>',
+            f'<div class="qprompt">{q["prompt"]}</div>'
+            f'{figure_html}',
             unsafe_allow_html=True,
         )
 
@@ -624,6 +737,7 @@ elif ss.phase == "done":
         )
         if st.button("View Results →", type="primary"):
             ss.phase = "results"
+            ss.rtab = "overview"
             st.rerun()
         st.markdown('<p class="done-note">Progress starts with understanding.</p>', unsafe_allow_html=True)
 
@@ -670,8 +784,8 @@ elif ss.phase == "results":
     )
 
     hero_bg = (
-        "linear-gradient(95deg, rgba(205,213,232,1) 0%, rgba(205,213,232,1) 32%, "
-        "rgba(205,213,232,.86) 47%, rgba(205,213,232,.34) 66%, rgba(205,213,232,0) 90%), "
+        "linear-gradient(100deg, rgba(205,213,232,.94) 0%, rgba(205,213,232,.86) 34%, "
+        "rgba(205,213,232,.5) 62%, rgba(205,213,232,.1) 100%), "
         f"url({photo})"
     )
 
@@ -687,9 +801,20 @@ elif ss.phase == "results":
         f'<div class="rpt-prog"><div class="rpt-prog-fill" style="width:{pct}%"></div></div>'
         f'<p class="rpt-summary">{summary}</p>'
         f'<a class="rpt-pdf" href="#" target="_self">{dl_icon} Download PDF</a>'
-        f'</div></div></div>'
-        f'<div class="rpt-lower">'
-        f'<div class="rpt-stats">'
+        f'</div></div></div>',
+        unsafe_allow_html=True,
+    )
+
+    tone_class = {"on": "b-on", "slightly": "b-slightly", "below": "b-below", "ahead": "b-ahead"}
+
+    def join_h(items):
+        items = list(items)
+        if len(items) <= 1:
+            return items[0] if items else ""
+        return ", ".join(items[:-1]) + " and " + items[-1]
+
+    stats_html = (
+        '<div class="rpt-stats">'
         f'<div class="rpt-stat"><div class="rpt-num n-green">{strong_n}</div>'
         f'<div class="rpt-stat-t">Strong areas</div><div class="rpt-stat-s">On or above grade level</div></div>'
         f'<div class="rpt-stat"><div class="rpt-num n-gold">{review_n}</div>'
@@ -698,98 +823,132 @@ elif ss.phase == "results":
         f'<div class="rpt-stat-t">Focus area</div><div class="rpt-stat-s">Below grade level</div></div>'
         f'<div class="rpt-stat"><div class="rpt-num n-blue">{ready}</div>'
         f'<div class="rpt-stat-t">Ready for more</div><div class="rpt-stat-s">Above-grade topics</div></div>'
-        f'</div>'
-        f'<div class="rpt-foot">'
-        f'<p class="rpt-quote">A grade is one number. This is a bigger picture.</p>'
-        f'<div class="rpt-tag"><span class="tag-line"></span>Different strengths.<br>Brighter possibilities.</div>'
-        f'</div>'
-        f'</div>',
-        unsafe_allow_html=True,
+        '</div>'
     )
 
-    tab_overview, tab_skills, tab_questions, tab_next = st.tabs(
-        ["Overview", "Skill details", "Questions", "Next steps"]
+    # ---- Overview ----
+    band_phrase = {
+        "Above grade level": "a strong", "On grade level": "an on-track",
+        "Approaching grade level": "a developing", "Below grade level": "an emerging",
+    }.get(band, "a developing")
+    weak = (snap["areasToReview"] + snap["focusAreas"])[:2]
+    kt = f"{name} shows {band_phrase} understanding of key Grade {grade} math skills."
+    if weak:
+        kt += f" There are some areas that could use more practice, especially in {join_h(weak)}."
+    elif snap["strongAreas"]:
+        kt += f" Strengths come through consistently, including {join_h(snap['strongAreas'][:2])}."
+    else:
+        kt += " Performance was steady across the skills assessed."
+
+    mix = snap["errorMix"]
+    tp, tc = mix["procedural"], mix["conceptual"]
+    if tp + tc > 0:
+        if tc > tp:
+            why_cap = "Most misses were conceptual — worth reteaching the idea, not just more practice."
+        elif tp > tc:
+            why_cap = "Most misses were procedural slips — the methods are there; accuracy comes with practice."
+        else:
+            why_cap = "An even mix of procedural slips and conceptual gaps."
+        why_block = (
+            f'<div class="ov-badges"><span class="badge b-proc">{tp} procedural</span>'
+            f'<span class="badge b-cog">{tc} conceptual</span></div>'
+            f'<p class="ov-cap">{why_cap}</p>'
+        )
+    else:
+        why_block = '<p class="ov-cap">No wrong answers to analyze — a clean run.</p>'
+
+    overview_html = (
+        '<div class="ov"><div class="ov-left">'
+        '<h3>Key takeaways</h3>'
+        f'<p>{kt}</p>'
+        '<div class="ov-div"></div>'
+        '<h4>Why answers were missed</h4>'
+        f'{why_block}'
+        f'<a class="rpt-pdf ov-pdf" href="#" target="_self">{dl_icon} Download PDF</a>'
+        '</div><div class="ov-right">'
+        '<div class="ov-tagline"><span class="tl-line"></span>A grade is one number.<br>This is a bigger picture.</div>'
+        '<h4>A closer look</h4>'
+        f'<p class="ov-closer-p">Explore the details, see how {name} performed on each skill, '
+        'review the questions, and find next steps.</p>'
+        '<div class="ov-nav">'
+        '<div class="ov-nav-item">Skill details <span class="arw">&rarr;</span></div>'
+        '<div class="ov-nav-item">Questions <span class="arw">&rarr;</span></div>'
+        '<div class="ov-nav-item">Next steps <span class="arw">&rarr;</span></div>'
+        '</div></div></div>'
     )
 
-    tone_class = {"on": "b-on", "slightly": "b-slightly", "below": "b-below", "ahead": "b-ahead"}
-
-    with tab_overview:
-        st.markdown("**Key takeaways**")
-        takeaways = []
-        if snap["strongAreas"]:
-            takeaways.append(f"Strong foundation in {', '.join(snap['strongAreas'][:2])}")
-        if snap["areasToReview"]:
-            takeaways.append(f"{', '.join(snap['areasToReview'][:2])} could use more practice")
-        if snap["focusAreas"]:
-            takeaways.append(f"Focus support recommended for {', '.join(snap['focusAreas'][:2])}")
-        if snap["readyForMore"]:
-            takeaways.append("Ready for some above-grade concepts")
-        for t in takeaways:
-            st.markdown(f"- {t}")
-
-        mix = snap["errorMix"]
-        if mix["procedural"] + mix["conceptual"] > 0:
-            st.markdown("**Why answers were missed**")
-            st.markdown(
-                f"<span class='badge b-proc'>{mix['procedural']} procedural</span> &nbsp; "
-                f"<span class='badge b-cog'>{mix['conceptual']} conceptual</span>",
-                unsafe_allow_html=True,
-            )
-            if mix["conceptual"] > mix["procedural"]:
-                st.caption("Most misses were conceptual — worth reteaching the idea, not just more practice.")
-            elif mix["procedural"] > mix["conceptual"]:
-                st.caption("Most misses were procedural slips — the methods are there; accuracy comes with practice.")
-            else:
-                st.caption("An even mix of procedural slips and conceptual gaps.")
-
-    with tab_skills:
+    # ---- Skill details ----
+    if assessed:
+        rows = ""
         for s in assessed:
             cmp = s["comparison"]
-            left, right = st.columns([3, 2])
-            with left:
-                st.markdown(f"**{s['label']}**")
-                st.progress(min(max(s["mastery"], 0.08), 1.0))
-            with right:
-                st.markdown(
-                    f"<span class='badge {tone_class.get(cmp['tone'], 'b-on')}'>{cmp['label']}</span> "
-                    f"&nbsp; {s['correct']}/{s['evidence']} correct",
-                    unsafe_allow_html=True,
-                )
+            m = round(min(max(s["mastery"], 0.08), 1.0) * 100)
+            rows += (
+                '<div class="sk-row"><div>'
+                f'<div class="sk-label">{s["label"]}</div>'
+                f'<div class="sk-bar"><div class="sk-fill" style="width:{m}%"></div></div>'
+                '</div>'
+                f'<div class="sk-right"><span class="badge {tone_class.get(cmp["tone"], "b-on")}">{cmp["label"]}</span>'
+                f' &nbsp; {s["correct"]}/{s["evidence"]} correct</div></div>'
+            )
+        skills_html = f'<div class="sk">{rows}</div>'
+    else:
+        skills_html = '<div class="sk"><p class="ov-cap">No skills assessed yet.</p></div>'
 
-    with tab_questions:
-        st.caption("Every question, and — when missed — whether it was a procedural slip or a conceptual gap.")
-        for h in state["history"]:
-            gen = state["generated"].get(h["questionId"], {})
-            mark = "✅" if h["correct"] else "❌"
-            st.markdown(f"{mark} **{gen.get('prompt', h['questionId'])}**")
-            meta = f"{engine.SKILL_LABELS.get(h['skill'], h['skill'])} · Grade {h['grade']}"
-            if h["correct"]:
-                st.caption(f"{meta} · answered {h['response']}")
-            else:
-                badge = "b-proc" if h["diagnosis"] and h["diagnosis"]["type"] == "procedural" else "b-cog"
-                label = "Procedural error" if badge == "b-proc" else "Cognitive error"
-                st.caption(f"{meta} · chose **{h['response']}**, correct answer **{gen.get('answer')}**")
-                why = h["diagnosis"]["note"] if h["diagnosis"] else None
-                st.markdown(
-                    (f"<span class='qwhy'>Why: {why}.</span> &nbsp; " if why else "")
-                    + f"<span class='badge {badge}'>{label}</span>",
-                    unsafe_allow_html=True,
-                )
-            st.divider()
+    # ---- Questions ----
+    q_rows = ""
+    for h in state["history"]:
+        gen = state["generated"].get(h["questionId"], {})
+        mark = "✅" if h["correct"] else "❌"
+        fig = question_figure_html(gen)
+        fig_html = f'<div class="qz-fig">{fig}</div>' if fig else ""
+        meta = f"{engine.SKILL_LABELS.get(h['skill'], h['skill'])} · Grade {h['grade']}"
+        if h["correct"]:
+            detail = f'<div class="qz-meta">{meta} · answered {h["response"]}</div>'
+        else:
+            badge = "b-proc" if h["diagnosis"] and h["diagnosis"]["type"] == "procedural" else "b-cog"
+            label = "Procedural error" if badge == "b-proc" else "Cognitive error"
+            why = h["diagnosis"]["note"] if h["diagnosis"] else None
+            detail = (
+                f'<div class="qz-meta">{meta} · chose <b>{h["response"]}</b>, '
+                f'correct answer <b>{gen.get("answer")}</b></div>'
+                + (f'<span class="qwhy">Why: {why}.</span> &nbsp; ' if why else "")
+                + f'<span class="badge {badge}">{label}</span>'
+            )
+        q_rows += (
+            f'<div class="qz-row"><div class="qz-prompt"><span class="qz-mark">{mark}</span>'
+            f'{gen.get("prompt", h["questionId"])}</div>{fig_html}{detail}</div>'
+        )
+    questions_html = (
+        '<div class="qz"><p class="qz-intro">Every question, and — when missed — whether it '
+        f'was a procedural slip or a conceptual gap.</p>{q_rows}</div>'
+    )
 
-    with tab_next:
-        st.markdown("**What's next?**")
-        steps = []
-        focus_skill = min(assessed, key=lambda k: k["mastery"]) if assessed else None
-        if focus_skill:
-            steps.append(f"Spend short, regular sessions on {focus_skill['label']} before moving on.")
-        if snap["areasToReview"]:
-            steps.append(f"Review {', '.join(snap['areasToReview'])} with mixed practice problems.")
-        if snap["readyForMore"]:
-            steps.append("Introduce a stretch challenge to keep engagement high.")
-        steps.append("Re-take the Math Check in 4–6 weeks to measure growth.")
-        for s in steps:
-            st.markdown(f"- {s}")
+    # ---- Next steps ----
+    steps = []
+    focus_skill = min(assessed, key=lambda k: k["mastery"]) if assessed else None
+    if focus_skill:
+        steps.append(f"Spend short, regular sessions on {focus_skill['label']} before moving on.")
+    if snap["areasToReview"]:
+        steps.append(f"Review {join_h(snap['areasToReview'])} with mixed practice problems.")
+    if snap["readyForMore"]:
+        steps.append("Introduce a stretch challenge to keep engagement high.")
+    steps.append("Re-take the Math Check in 4–6 weeks to measure growth.")
+    nx_items = "".join(
+        f'<div class="nx-item"><div class="nx-num">{i + 1}</div><div class="nx-text">{s}</div></div>'
+        for i, s in enumerate(steps)
+    )
+    next_html = f'<div class="nx">{nx_items}</div>'
 
-    st.divider()
-    st.button("Start over", on_click=reset)
+    t_over, t_skill, t_quest, t_next = st.tabs(
+        [":material/description: Overview", ":material/bar_chart: Skill details",
+         ":material/help: Questions", ":material/flag: Next steps"]
+    )
+    with t_over:
+        st.markdown(f'<div class="rlower">{stats_html}{overview_html}</div>', unsafe_allow_html=True)
+    with t_skill:
+        st.markdown(f'<div class="rlower">{skills_html}</div>', unsafe_allow_html=True)
+    with t_quest:
+        st.markdown(f'<div class="rlower">{questions_html}</div>', unsafe_allow_html=True)
+    with t_next:
+        st.markdown(f'<div class="rlower">{next_html}</div>', unsafe_allow_html=True)
